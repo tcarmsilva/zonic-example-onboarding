@@ -34,12 +34,73 @@ export const chatConfig: ChatbotConfig = {
 
   steps: [
     // ============================================
+    // SEÇÃO 0: RESPONSÁVEL PELO PROJETO
+    // ============================================
+    {
+      id: "project_responsible_role",
+      type: "choices",
+      botMessage: "Primeiro, quem é o responsável por este projeto de implantação da Zonic?",
+      options: [
+        "Dono(a) da clínica",
+        "Gerente",
+        "Atendente",
+        "Agência",
+      ],
+      dataKey: "project_responsible_role",
+      trackingEvent: "project_responsible_role",
+    },
+    {
+      id: "project_responsible_name",
+      type: "text",
+      botMessage: "Qual é o seu nome completo?",
+      placeholder: "Nome completo",
+      dataKey: "project_responsible_name",
+      trackingEvent: "project_responsible_name",
+    },
+    {
+      id: "project_responsible_phone",
+      type: "phone",
+      botMessage: "Qual é o seu telefone de contato?",
+      dataKey: "project_responsible_phone",
+      trackingEvent: "project_responsible_phone",
+    },
+    {
+      id: "owner_name",
+      type: "text",
+      botMessage: "Qual é o nome do(a) dono(a) da clínica?",
+      placeholder: "Nome completo do(a) proprietário(a)",
+      dataKey: "owner_name",
+      trackingEvent: "owner_name",
+      showIf: (userData) => userData.project_responsible_role !== "Dono(a) da clínica",
+    },
+    {
+      id: "owner_phone",
+      type: "phone",
+      botMessage: "Qual é o telefone do(a) dono(a) da clínica?",
+      dataKey: "owner_phone",
+      trackingEvent: "owner_phone",
+      showIf: (userData) => userData.project_responsible_role !== "Dono(a) da clínica",
+    },
+    {
+      id: "platform_users",
+      type: "team_members",
+      botMessage: (
+        <div className="space-y-2">
+          <p>Quem vai usar a plataforma da Zonic no dia a dia?</p>
+          <p className="text-sm text-[#04152b]/70">Selecione todas as pessoas que vão acessar o sistema e preencha os dados de cada uma.</p>
+        </div>
+      ),
+      dataKey: "platform_users",
+      trackingEvent: "platform_users",
+    },
+
+    // ============================================
     // SEÇÃO 1: INFORMAÇÕES BÁSICAS DA CLÍNICA
     // ============================================
     {
       id: "clinic_name",
       type: "text",
-      botMessage: "Qual é o nome da sua clínica?",
+      botMessage: "Agora vamos às informações da clínica! Qual é o nome da sua clínica?",
       placeholder: "Ex: Clínica Estética Bella",
       dataKey: "clinic_name",
       trackingEvent: "clinic_name",
@@ -147,6 +208,20 @@ export const chatConfig: ChatbotConfig = {
       trackingEvent: "assistant_name",
     },
     {
+      id: "greeting",
+      type: "textarea",
+      botMessage: (
+        <div className="space-y-2">
+          <p>Qual mensagem de saudação inicial você quer que a IA envie?</p>
+          <p className="text-sm text-[#04152b]/70">Exemplo: "Bem-vindo(a) à Clínica X! Somos especialistas em harmonização facial e a melhor clínica da região. Como posso ajudá-lo(a)?"</p>
+        </div>
+      ),
+      placeholder: "Digite a mensagem de saudação...",
+      helpText: "Esta será a primeira mensagem que o lead receberá",
+      dataKey: "greeting",
+      trackingEvent: "greeting",
+    },
+    {
       id: "bot_reply_to",
       type: "choices",
       botMessage: "A IA deve responder mensagens de todos os leads ou apenas dos que vierem do tráfego pago (anúncios)?",
@@ -190,6 +265,18 @@ export const chatConfig: ChatbotConfig = {
       dataKey: "conversation_flow",
       trackingEvent: "conversation_flow",
     },
+    {
+      id: "conversation_style",
+      type: "conversation_style",
+      botMessage: (
+        <div className="space-y-2">
+          <p>Qual tipo de comunicação você quer que a sua IA tenha?</p>
+          <p className="text-sm text-[#04152b]/70">Veja os exemplos de cada estilo para entender melhor:</p>
+        </div>
+      ),
+      dataKey: "conversation_style",
+      trackingEvent: "conversation_style",
+    },
 
     // ============================================
     // SEÇÃO 3: CALENDÁRIO E AGENDAMENTOS
@@ -228,6 +315,18 @@ export const chatConfig: ChatbotConfig = {
       dataKey: "crm_provider_other",
       trackingEvent: "crm_provider_other",
       showIf: (userData) => userData.crm_provider === "Outro sistema",
+    },
+    {
+      id: "familiar_to_crm",
+      type: "choices",
+      botMessage: "Você e sua equipe sabem o que é um CRM e como usá-lo?",
+      options: [
+        "Sim, já usamos CRM",
+        "Não sabemos o que é",
+        "Sabemos, mas precisamos de treinamento",
+      ],
+      dataKey: "familiar_to_crm",
+      trackingEvent: "familiar_to_crm",
     },
     {
       id: "is_ai_allow_to_book_appointments",

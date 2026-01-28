@@ -18,7 +18,9 @@ import { NumberInput } from "./number-input"
 import { TextareaInput } from "./textarea-input"
 import { MultiTextInput } from "./multi-text-input"
 import { ConversationFlowSelect } from "./conversation-flow-select"
+import { ConversationStyleSelect } from "./conversation-style-select"
 import { CaptureInfoInput } from "./capture-info-input"
+import { TeamMembersInput } from "./team-members-input"
 import { CalendarScheduler } from "./calendar-scheduler"
 import { TypingIndicator } from "./typing-indicator"
 import { MetaEvents, GTMEvents } from "@/lib/tracking"
@@ -54,7 +56,9 @@ export function ChatContainer({ config }: ChatContainerProps) {
   const [showTextarea, setShowTextarea] = useState(false)
   const [showMultiText, setShowMultiText] = useState(false)
   const [showConversationFlow, setShowConversationFlow] = useState(false)
+  const [showConversationStyle, setShowConversationStyle] = useState(false)
   const [showCaptureInfo, setShowCaptureInfo] = useState(false)
+  const [showTeamMembers, setShowTeamMembers] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
   const [userData, setUserData] = useState<Record<string, string>>({})
   const [welcomeComplete, setWelcomeComplete] = useState(false)
@@ -85,7 +89,7 @@ export function ChatContainer({ config }: ChatContainerProps) {
       return
     }
     scrollToBottom()
-  }, [messagesLength, messagesLastId, isTyping, showInput, showChoices, showMultiSelect, showTimezone, showOperatingHours, showDeactivationSchedule, showNumber, showTextarea, showMultiText, showConversationFlow, showCaptureInfo, showCalendar])
+  }, [messagesLength, messagesLastId, isTyping, showInput, showChoices, showMultiSelect, showTimezone, showOperatingHours, showDeactivationSchedule, showNumber, showTextarea, showMultiText, showConversationFlow, showConversationStyle, showCaptureInfo, showTeamMembers, showCalendar])
 
   const addBotMessage = (content: string | React.ReactNode, showAvatar = true) => {
     setMessages((prev) => [
@@ -129,7 +133,9 @@ export function ChatContainer({ config }: ChatContainerProps) {
     setShowTextarea(false)
     setShowMultiText(false)
     setShowConversationFlow(false)
+    setShowConversationStyle(false)
     setShowCaptureInfo(false)
+    setShowTeamMembers(false)
     setShowCalendar(false)
   }
 
@@ -210,8 +216,14 @@ export function ChatContainer({ config }: ChatContainerProps) {
       case "conversation_flow":
         setShowConversationFlow(true)
         break
+      case "conversation_style":
+        setShowConversationStyle(true)
+        break
       case "capture_info":
         setShowCaptureInfo(true)
+        break
+      case "team_members":
+        setShowTeamMembers(true)
         break
       default:
         setShowInput(true)
@@ -518,10 +530,24 @@ export function ChatContainer({ config }: ChatContainerProps) {
             </div>
           )}
 
+          {/* Conversation Style Select */}
+          {showConversationStyle && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-300 py-4">
+              <ConversationStyleSelect onSubmit={handleSubmit} />
+            </div>
+          )}
+
           {/* Capture Info Input */}
           {showCaptureInfo && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-300 py-4">
               <CaptureInfoInput onSubmit={handleSubmit} />
+            </div>
+          )}
+
+          {/* Team Members Input */}
+          {showTeamMembers && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-300 py-4">
+              <TeamMembersInput onSubmit={handleSubmit} />
             </div>
           )}
 

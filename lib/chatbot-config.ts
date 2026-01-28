@@ -14,7 +14,9 @@ export type StepInputType =
   | "textarea"
   | "multi_text"
   | "conversation_flow"
+  | "conversation_style"
   | "capture_info"
+  | "team_members"
 
 // Definição de cada step do chat
 export interface ChatStep {
