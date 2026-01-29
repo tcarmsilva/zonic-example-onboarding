@@ -233,13 +233,13 @@ export function BookingForm({ selectedSlot, userData, onSuccess, onBack, leadId,
   return (
     <div className="space-y-6 px-4">
       {/* Selected slot summary */}
-      <div className="bg-white/60 border-2 border-[#0051fe]/20 rounded-2xl p-4 space-y-3">
-        <div className="flex items-center gap-2 text-sm text-[#04152b]">
-          <Calendar className="h-4 w-4 text-[#0051fe]" />
+      <div className="bg-white/60 border-2 border-brand-primary/20 rounded-2xl p-4 space-y-3">
+        <div className="flex items-center gap-2 text-sm text-brand-foreground">
+          <Calendar className="h-4 w-4 text-brand-primary" />
           <span className="font-medium">{formattedDate}</span>
         </div>
-        <div className="flex items-center gap-2 text-sm text-[#04152b]">
-          <Clock className="h-4 w-4 text-[#0051fe]" />
+        <div className="flex items-center gap-2 text-sm text-brand-foreground">
+          <Clock className="h-4 w-4 text-brand-primary" />
           <span className="font-medium">{formattedTime}</span>
         </div>
       </div>
@@ -249,7 +249,7 @@ export function BookingForm({ selectedSlot, userData, onSuccess, onBack, leadId,
           <Button
             onClick={handleConfirmBooking}
             disabled={loading}
-            className="w-full rounded-3xl bg-[#0051fe] px-6 py-7 text-lg font-semibold text-white hover:bg-[#0051fe]/90 transition-colors shadow-lg"
+            className="w-full rounded-3xl bg-brand-primary px-6 py-7 text-lg font-semibold text-white hover:bg-brand-primary/90 transition-colors shadow-lg"
           >
             {loading ? (
               <>
@@ -264,7 +264,7 @@ export function BookingForm({ selectedSlot, userData, onSuccess, onBack, leadId,
             onClick={onBack}
             disabled={loading}
             variant="outline"
-            className="w-full rounded-3xl !bg-white !border-2 !border-[#0051fe] text-[#04152b] hover:!bg-white/80 py-3 transition-colors"
+            className="w-full rounded-3xl !bg-white !border-2 !border-brand-primary text-brand-foreground hover:!bg-white/80 py-3 transition-colors"
           >
             Escolher outro horário
           </Button>
@@ -275,14 +275,14 @@ export function BookingForm({ selectedSlot, userData, onSuccess, onBack, leadId,
       {step === "email-choice" && (
         <div className="space-y-4">
           <div className="text-center space-y-2">
-            <p className="text-[#0051fe] text-lg font-semibold">Agendamento confirmado!</p>
-            <p className="text-[#04152b] text-base">Você quer receber a confirmação e o convite por e-mail?</p>
+            <p className="text-brand-primary text-lg font-semibold">Agendamento confirmado!</p>
+            <p className="text-brand-foreground text-base">Você quer receber a confirmação e o convite por e-mail?</p>
           </div>
           <div className="space-y-3">
             <Button
               onClick={() => handleEmailChoice("Sim, quero receber")}
               disabled={loading}
-              className="w-full rounded-full bg-[#0051fe] px-6 py-3 text-base font-medium text-white hover:bg-[#0051fe]/90 transition-colors"
+              className="w-full rounded-full bg-brand-primary px-6 py-3 text-base font-medium text-white hover:bg-brand-primary/90 transition-colors"
             >
               Sim, quero receber
             </Button>
@@ -290,7 +290,7 @@ export function BookingForm({ selectedSlot, userData, onSuccess, onBack, leadId,
               onClick={() => handleEmailChoice("Não precisa")}
               disabled={loading}
               variant="outline"
-              className="w-full rounded-full bg-[#e6eefe] border-2 border-[#0051fe]/20 text-[#04152b] hover:bg-[#e6eefe]/80 py-3 transition-colors"
+              className="w-full rounded-full bg-brand-bg border-2 border-brand-primary/20 text-brand-foreground hover:bg-brand-bg/80 py-3 transition-colors"
             >
               Não precisa
             </Button>
@@ -301,7 +301,7 @@ export function BookingForm({ selectedSlot, userData, onSuccess, onBack, leadId,
       {step === "email-input" && (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <div className="flex items-center gap-2 rounded-2xl border-2 border-[#0051fe] bg-white/60 px-4 py-3">
+            <div className="flex items-center gap-2 rounded-2xl border-2 border-brand-primary bg-white/60 px-4 py-3">
               <input
                 type="email"
                 value={email}
@@ -312,14 +312,14 @@ export function BookingForm({ selectedSlot, userData, onSuccess, onBack, leadId,
                 onKeyDown={handleKeyDown}
                 placeholder="seuemail@exemplo.com"
                 disabled={loading}
-                className="flex-1 bg-transparent text-[#04152b] placeholder:text-[#04152b]/50 outline-none text-base"
+                className="flex-1 bg-transparent text-brand-foreground placeholder:text-brand-foreground/50 outline-none text-base"
               />
               <Button
                 size="icon"
                 onClick={handleSubmit}
                 disabled={!isValid || loading}
                 type="button"
-                className="size-10 shrink-0 rounded-full bg-[#0051fe] hover:bg-[#0051fe]/90 disabled:opacity-50"
+                className="size-10 shrink-0 rounded-full bg-brand-primary hover:bg-brand-primary/90 disabled:opacity-50"
               >
                 {loading ? <Loader2 className="size-5 animate-spin" /> : <ArrowUp className="size-5" />}
               </Button>
@@ -328,7 +328,7 @@ export function BookingForm({ selectedSlot, userData, onSuccess, onBack, leadId,
           </div>
           <Button
             type="submit"
-            className="w-full rounded-3xl bg-[#0051fe] px-6 py-7 text-lg font-semibold text-white hover:bg-[#0051fe]/90 transition-colors shadow-lg"
+            className="w-full rounded-3xl bg-brand-primary px-6 py-7 text-lg font-semibold text-white hover:bg-brand-primary/90 transition-colors shadow-lg"
             disabled={!isValid || loading}
           >
             {loading ? (

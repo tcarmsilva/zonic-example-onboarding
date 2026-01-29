@@ -138,8 +138,15 @@ export const chatConfig: ChatbotConfig = {
     },
     {
       id: "clinic_timezone",
-      type: "timezone",
-      botMessage: "Em qual timezone a sua clínica trabalha?",
+      type: "choices",
+      botMessage: "Em qual fuso horário a sua clínica trabalha?",
+      options: [
+        "Brasília (GMT-3)",
+        "Manaus (GMT-4)",
+        "Cuiabá (GMT-4)",
+        "Rio Branco (GMT-5)",
+        "Fernando de Noronha (GMT-2)",
+      ],
       dataKey: "clinic_timezone",
       trackingEvent: "clinic_timezone",
     },
@@ -161,11 +168,13 @@ export const chatConfig: ChatbotConfig = {
     },
     {
       id: "instagram_links",
-      type: "multi_text",
-      botMessage: "Quais são os perfis de Instagram da sua clínica? Você pode adicionar mais de um se tiver.",
-      placeholder: "@suaclinica",
-      addButtonText: "Adicionar outro Instagram",
-      maxItems: 5,
+      type: "instagram",
+      botMessage: (
+        <div className="space-y-2">
+          <p>Quais são os perfis de Instagram da sua clínica?</p>
+          <p className="text-sm text-[#04152b]/70">Para cada perfil, informe o usuário (sem o @) e se é da clínica ou de um(a) doutor(a). Você pode adicionar mais de um.</p>
+        </div>
+      ),
       dataKey: "instagram_links",
       trackingEvent: "instagram_links",
     },

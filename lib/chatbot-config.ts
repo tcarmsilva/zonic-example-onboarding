@@ -17,6 +17,7 @@ export type StepInputType =
   | "conversation_style"
   | "capture_info"
   | "team_members"
+  | "instagram"
 
 // Definição de cada step do chat
 export interface ChatStep {

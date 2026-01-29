@@ -102,7 +102,7 @@ export function OperatingHoursInput({ onSubmit, className }: OperatingHoursInput
                   <select
                     value={dayHours.start}
                     onChange={(e) => updateTime(day.key, "start", e.target.value)}
-                    className="flex-1 rounded-lg border border-[#0051fe]/30 bg-white px-2 py-1.5 text-sm outline-none focus:border-[#0051fe]"
+                    className="flex-1 rounded-lg border border-[#0051fe]/30 bg-white px-2 py-1.5 text-sm text-[#04152b] outline-none focus:border-[#0051fe] [&>option]:text-[#04152b] [&>option]:bg-white"
                   >
                     {TIME_OPTIONS.map(time => (
                       <option key={time} value={time}>{time}</option>
@@ -112,7 +112,7 @@ export function OperatingHoursInput({ onSubmit, className }: OperatingHoursInput
                   <select
                     value={dayHours.end}
                     onChange={(e) => updateTime(day.key, "end", e.target.value)}
-                    className="flex-1 rounded-lg border border-[#0051fe]/30 bg-white px-2 py-1.5 text-sm outline-none focus:border-[#0051fe]"
+                    className="flex-1 rounded-lg border border-[#0051fe]/30 bg-white px-2 py-1.5 text-sm text-[#04152b] outline-none focus:border-[#0051fe] [&>option]:text-[#04152b] [&>option]:bg-white"
                   >
                     {TIME_OPTIONS.map(time => (
                       <option key={time} value={time}>{time}</option>

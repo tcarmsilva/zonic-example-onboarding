@@ -21,6 +21,7 @@ import { ConversationFlowSelect } from "./conversation-flow-select"
 import { ConversationStyleSelect } from "./conversation-style-select"
 import { CaptureInfoInput } from "./capture-info-input"
 import { TeamMembersInput } from "./team-members-input"
+import { InstagramInput } from "./instagram-input"
 import { CalendarScheduler } from "./calendar-scheduler"
 import { TypingIndicator } from "./typing-indicator"
 import { MetaEvents, GTMEvents } from "@/lib/tracking"
@@ -59,6 +60,7 @@ export function ChatContainer({ config }: ChatContainerProps) {
   const [showConversationStyle, setShowConversationStyle] = useState(false)
   const [showCaptureInfo, setShowCaptureInfo] = useState(false)
   const [showTeamMembers, setShowTeamMembers] = useState(false)
+  const [showInstagram, setShowInstagram] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
   const [userData, setUserData] = useState<Record<string, string>>({})
   const [welcomeComplete, setWelcomeComplete] = useState(false)
@@ -89,7 +91,7 @@ export function ChatContainer({ config }: ChatContainerProps) {
       return
     }
     scrollToBottom()
-  }, [messagesLength, messagesLastId, isTyping, showInput, showChoices, showMultiSelect, showTimezone, showOperatingHours, showDeactivationSchedule, showNumber, showTextarea, showMultiText, showConversationFlow, showConversationStyle, showCaptureInfo, showTeamMembers, showCalendar])
+  }, [messagesLength, messagesLastId, isTyping, showInput, showChoices, showMultiSelect, showTimezone, showOperatingHours, showDeactivationSchedule, showNumber, showTextarea, showMultiText, showConversationFlow, showConversationStyle, showCaptureInfo, showTeamMembers, showInstagram, showCalendar])
 
   const addBotMessage = (content: string | React.ReactNode, showAvatar = true) => {
     setMessages((prev) => [
@@ -136,6 +138,7 @@ export function ChatContainer({ config }: ChatContainerProps) {
     setShowConversationStyle(false)
     setShowCaptureInfo(false)
     setShowTeamMembers(false)
+    setShowInstagram(false)
     setShowCalendar(false)
   }
 
@@ -224,6 +227,9 @@ export function ChatContainer({ config }: ChatContainerProps) {
         break
       case "team_members":
         setShowTeamMembers(true)
+        break
+      case "instagram":
+        setShowInstagram(true)
         break
       default:
         setShowInput(true)
@@ -548,6 +554,13 @@ export function ChatContainer({ config }: ChatContainerProps) {
           {showTeamMembers && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-300 py-4">
               <TeamMembersInput onSubmit={handleSubmit} />
+            </div>
+          )}
+
+          {/* Instagram Input */}
+          {showInstagram && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-300 py-4">
+              <InstagramInput onSubmit={handleSubmit} />
             </div>
           )}
 

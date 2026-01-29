@@ -136,7 +136,7 @@ export function DeactivationScheduleInput({ onSubmit, className }: DeactivationS
                     <select
                       value={daySchedule.start}
                       onChange={(e) => updateTime(day.key, "start", e.target.value)}
-                      className="flex-1 rounded-lg border border-[#0051fe]/30 bg-white px-2 py-1 text-xs outline-none"
+                      className="flex-1 rounded-lg border border-[#0051fe]/30 bg-white px-2 py-1 text-xs text-[#04152b] outline-none focus:border-[#0051fe] [&>option]:text-[#04152b] [&>option]:bg-white"
                     >
                       {TIME_OPTIONS.map(time => (
                         <option key={time} value={time}>{time}</option>
@@ -146,7 +146,7 @@ export function DeactivationScheduleInput({ onSubmit, className }: DeactivationS
                     <select
                       value={daySchedule.end}
                       onChange={(e) => updateTime(day.key, "end", e.target.value)}
-                      className="flex-1 rounded-lg border border-[#0051fe]/30 bg-white px-2 py-1 text-xs outline-none"
+                      className="flex-1 rounded-lg border border-[#0051fe]/30 bg-white px-2 py-1 text-xs text-[#04152b] outline-none focus:border-[#0051fe] [&>option]:text-[#04152b] [&>option]:bg-white"
                     >
                       {TIME_OPTIONS.map(time => (
                         <option key={time} value={time}>{time}</option>

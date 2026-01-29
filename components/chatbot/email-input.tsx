@@ -65,7 +65,7 @@ export function EmailInput({ onSubmit, className }: EmailInputProps) {
 
   return (
     <div className={cn("space-y-2", className)}>
-      <div className="flex items-center gap-2 rounded-2xl border-2 border-[#0051fe] bg-white/60 px-4 py-3">
+      <div className="flex items-center gap-2 rounded-2xl border-2 border-brand-primary bg-white/60 px-4 py-3">
         <input
           ref={inputRef}
           type="email"
@@ -73,7 +73,7 @@ export function EmailInput({ onSubmit, className }: EmailInputProps) {
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           placeholder="seuemail@exemplo.com"
-          className="flex-1 bg-transparent text-[#04152b] placeholder:text-[#04152b]/50 outline-none text-base"
+          className="flex-1 bg-transparent text-brand-foreground placeholder:text-brand-foreground/50 outline-none text-base"
         />
 
         <Button
