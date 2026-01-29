@@ -5,8 +5,10 @@ export type StepInputType =
   | "text" 
   | "phone" 
   | "email" 
+  | "cnpj"
   | "choices" 
   | "multi_select"
+  | "rating"
   | "timezone"
   | "operating_hours"
   | "deactivation_schedule"
@@ -18,6 +20,7 @@ export type StepInputType =
   | "capture_info"
   | "team_members"
   | "instagram"
+  | "hot_lead"
 
 // Definição de cada step do chat
 export interface ChatStep {

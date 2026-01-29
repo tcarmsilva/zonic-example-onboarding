@@ -22,6 +22,9 @@ import { ConversationStyleSelect } from "./conversation-style-select"
 import { CaptureInfoInput } from "./capture-info-input"
 import { TeamMembersInput } from "./team-members-input"
 import { InstagramInput } from "./instagram-input"
+import { CnpjInput } from "./cnpj-input"
+import { RatingInput } from "./rating-input"
+import { HotLeadInput } from "./hot-lead-input"
 import { CalendarScheduler } from "./calendar-scheduler"
 import { TypingIndicator } from "./typing-indicator"
 import { MetaEvents, GTMEvents } from "@/lib/tracking"
@@ -61,6 +64,9 @@ export function ChatContainer({ config }: ChatContainerProps) {
   const [showCaptureInfo, setShowCaptureInfo] = useState(false)
   const [showTeamMembers, setShowTeamMembers] = useState(false)
   const [showInstagram, setShowInstagram] = useState(false)
+  const [showCnpj, setShowCnpj] = useState(false)
+  const [showRating, setShowRating] = useState(false)
+  const [showHotLead, setShowHotLead] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
   const [userData, setUserData] = useState<Record<string, string>>({})
   const [welcomeComplete, setWelcomeComplete] = useState(false)
@@ -91,7 +97,7 @@ export function ChatContainer({ config }: ChatContainerProps) {
       return
     }
     scrollToBottom()
-  }, [messagesLength, messagesLastId, isTyping, showInput, showChoices, showMultiSelect, showTimezone, showOperatingHours, showDeactivationSchedule, showNumber, showTextarea, showMultiText, showConversationFlow, showConversationStyle, showCaptureInfo, showTeamMembers, showInstagram, showCalendar])
+  }, [messagesLength, messagesLastId, isTyping, showInput, showChoices, showMultiSelect, showTimezone, showOperatingHours, showDeactivationSchedule, showNumber, showTextarea, showMultiText, showConversationFlow, showConversationStyle, showCaptureInfo, showTeamMembers, showInstagram, showCnpj, showRating, showHotLead, showCalendar])
 
   const addBotMessage = (content: string | React.ReactNode, showAvatar = true) => {
     setMessages((prev) => [
@@ -139,6 +145,9 @@ export function ChatContainer({ config }: ChatContainerProps) {
     setShowCaptureInfo(false)
     setShowTeamMembers(false)
     setShowInstagram(false)
+    setShowCnpj(false)
+    setShowRating(false)
+    setShowHotLead(false)
     setShowCalendar(false)
   }
 
@@ -231,6 +240,15 @@ export function ChatContainer({ config }: ChatContainerProps) {
       case "instagram":
         setShowInstagram(true)
         break
+      case "cnpj":
+        setShowCnpj(true)
+        break
+      case "rating":
+        setShowRating(true)
+        break
+      case "hot_lead":
+        setShowHotLead(true)
+        break
       default:
         setShowInput(true)
         break
@@ -278,7 +296,22 @@ export function ChatContainer({ config }: ChatContainerProps) {
     const step = getCurrentStep()
     if (!step) return
 
-    addUserMessage(value)
+    // For hot_lead we store JSON but show a readable summary in the chat
+    let displayMessage: string = value
+    if (step.type === "hot_lead") {
+      try {
+        const parsed = JSON.parse(value) as { muito_quente?: string; quente?: string; morno?: string }
+        const parts: string[] = []
+        if (parsed.muito_quente) parts.push(`Muito quente: ${parsed.muito_quente}`)
+        if (parsed.quente) parts.push(`Quente: ${parsed.quente}`)
+        if (parsed.morno) parts.push(`Morno: ${parsed.morno}`)
+        if (parts.length) displayMessage = parts.join("\n")
+      } catch {
+        // keep raw value if not valid JSON
+      }
+    }
+
+    addUserMessage(displayMessage)
     hideAllInputs()
 
     // Save data
@@ -416,6 +449,8 @@ export function ChatContainer({ config }: ChatContainerProps) {
         return <PhoneInput onSubmit={handleSubmit} />
       case "email":
         return <EmailInput onSubmit={handleSubmit} />
+      case "cnpj":
+        return <CnpjInput onSubmit={handleSubmit} />
       default:
         return (
           <TextInput onSubmit={handleSubmit} type="text" placeholder={step.placeholder || "Digite sua resposta..."} />
@@ -564,6 +599,22 @@ export function ChatContainer({ config }: ChatContainerProps) {
             </div>
           )}
 
+          {/* CNPJ Input (fixed bottom like text/phone) - rendered in fixed section when showCnpj */}
+
+          {/* Rating Input */}
+          {showRating && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-300 py-4 px-4">
+              <RatingInput onSubmit={handleSubmit} />
+            </div>
+          )}
+
+          {/* Hot Lead Input (3 fields: muito quente, quente, morno) */}
+          {showHotLead && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-300 py-4 px-4">
+              <HotLeadInput onSubmit={handleSubmit} />
+            </div>
+          )}
+
           {/* Calendar Scheduler */}
           {showCalendar && config.calendar && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-300 py-4">
@@ -579,8 +630,8 @@ export function ChatContainer({ config }: ChatContainerProps) {
         </div>
       </div>
 
-      {/* Fixed input at bottom - only for text, phone, email */}
-      {showInput && (
+      {/* Fixed input at bottom - for text, phone, email, cnpj */}
+      {(showInput || showCnpj) && (
         <div
           className="fixed inset-x-0 bottom-0 backdrop-blur-sm p-4 animate-in slide-in-from-bottom duration-300"
           style={{ backgroundColor: "rgba(230, 238, 254, 0.95)" }}

@@ -106,6 +106,13 @@ export const chatConfig: ChatbotConfig = {
       trackingEvent: "clinic_name",
     },
     {
+      id: "clinic_cnpj",
+      type: "cnpj",
+      botMessage: "Qual é o CNPJ da sua clínica?",
+      dataKey: "clinic_cnpj",
+      trackingEvent: "clinic_cnpj",
+    },
+    {
       id: "clinic_type",
       type: "choices",
       botMessage: "Qual é o tipo da sua clínica?",
@@ -128,13 +135,6 @@ export const chatConfig: ChatbotConfig = {
       botMessage: "Qual é o WhatsApp da sua clínica? Este será o número que a IA vai usar para atender os leads.",
       dataKey: "clinic_whatsapp_phone",
       trackingEvent: "clinic_whatsapp_phone",
-    },
-    {
-      id: "clinic_notification_phone",
-      type: "phone",
-      botMessage: "Em qual número você deseja receber notificações sobre agendamentos e alertas importantes?",
-      dataKey: "clinic_notification_phone",
-      trackingEvent: "clinic_notification_phone",
     },
     {
       id: "clinic_timezone",
@@ -165,6 +165,14 @@ export const chatConfig: ChatbotConfig = {
       placeholder: "https://maps.google.com/...",
       dataKey: "clinic_google_maps_link",
       trackingEvent: "clinic_google_maps_link",
+    },
+    {
+      id: "clinic_website",
+      type: "text",
+      botMessage: "Qual é o site da sua clínica? Se não tiver, escreva que não tem.",
+      placeholder: "https://... ou não tenho",
+      dataKey: "clinic_website",
+      trackingEvent: "clinic_website",
     },
     {
       id: "instagram_links",
@@ -199,6 +207,58 @@ export const chatConfig: ChatbotConfig = {
       dataKey: "parking",
       trackingEvent: "parking",
     },
+    {
+      id: "is_clinic_pix_shared",
+      type: "choices",
+      botMessage: "Você quer que a chave PIX da clínica seja compartilhada com os pacientes? Isso costuma ser usado após o agendamento, por exemplo para o paciente pagar um sinal ou a consulta.",
+      options: ["Sim, quero compartilhar", "Não"],
+      dataKey: "is_clinic_pix_shared",
+      trackingEvent: "is_clinic_pix_shared",
+    },
+    {
+      id: "clinic_pix_key",
+      type: "text",
+      botMessage: "Qual é a chave PIX da clínica? (CPF/CNPJ, e-mail ou chave aleatória)",
+      placeholder: "Chave PIX",
+      dataKey: "clinic_pix_key",
+      trackingEvent: "clinic_pix_key",
+      showIf: (userData) => userData.is_clinic_pix_shared === "Sim, quero compartilhar",
+    },
+    {
+      id: "accepted_payment_methods",
+      type: "multi_select",
+      botMessage: "Quais meios de pagamento a sua clínica aceita? Alguns pacientes perguntam isso. Selecione todas as opções que se aplicam.",
+      options: ["PIX", "Cartão de crédito", "Cartão de débito", "Boleto", "Dinheiro físico"],
+      minSelect: 1,
+      dataKey: "accepted_payment_methods",
+      trackingEvent: "accepted_payment_methods",
+    },
+    {
+      id: "is_health_insurance_accepted",
+      type: "choices",
+      botMessage: "A sua clínica aceita plano de saúde?",
+      options: ["Sim", "Não"],
+      dataKey: "is_health_insurance_accepted",
+      trackingEvent: "is_health_insurance_accepted",
+    },
+    {
+      id: "health_insurances_accepted",
+      type: "textarea",
+      botMessage: "Quais planos de saúde são aceitos? Liste aqui.",
+      placeholder: "Ex: Unimed, Bradesco Saúde, SulAmérica...",
+      dataKey: "health_insurances_accepted",
+      trackingEvent: "health_insurances_accepted",
+      showIf: (userData) => userData.is_health_insurance_accepted === "Sim",
+    },
+    {
+      id: "health_insurance_specifics",
+      type: "textarea",
+      botMessage: "Há algum plano de saúde que só é aceito para determinados tipos de consulta ou procedimento? Se sim, especifique aqui.",
+      placeholder: "Ex: Unimed apenas para consultas; Bradesco para todos os procedimentos...",
+      dataKey: "health_insurance_specifics",
+      trackingEvent: "health_insurance_specifics",
+      showIf: (userData) => userData.is_health_insurance_accepted === "Sim",
+    },
 
     // ============================================
     // SEÇÃO 2: CONFIGURAÇÃO DA IA
@@ -215,6 +275,18 @@ export const chatConfig: ChatbotConfig = {
       placeholder: "Nome da assistente",
       dataKey: "assistant_name",
       trackingEvent: "assistant_name",
+    },
+    {
+      id: "ai_assistant_role",
+      type: "choices",
+      botMessage: "Como você quer que a assistente se apresente aos pacientes? Ela pode dizer que é um assistente virtual, uma IA, uma atendente ou o próprio doutor(a) da clínica.",
+      options: [
+        "Assistente virtual / IA",
+        "Atendente da clínica",
+        "Doutor(a) da clínica",
+      ],
+      dataKey: "ai_assistant_role",
+      trackingEvent: "ai_assistant_role",
     },
     {
       id: "greeting",
@@ -286,6 +358,26 @@ export const chatConfig: ChatbotConfig = {
       dataKey: "conversation_style",
       trackingEvent: "conversation_style",
     },
+    {
+      id: "is_ai_allowed_to_send_product_prices",
+      type: "choices",
+      botMessage: "Você quer que a IA envie valores de consultas ou tratamentos quando o paciente perguntar?",
+      options: [
+        "Sim, só de consulta",
+        "Sim, só de tratamento",
+        "Nunca enviar valores",
+      ],
+      dataKey: "is_ai_allowed_to_send_product_prices",
+      trackingEvent: "is_ai_allowed_to_send_product_prices",
+    },
+    {
+      id: "is_ai_allowed_to_send_product_pictures",
+      type: "choices",
+      botMessage: "Quer que a IA envie fotos de procedimentos quando estiver falando de um tratamento? Por exemplo, imagens de antes e depois.",
+      options: ["Sim", "Não"],
+      dataKey: "is_ai_allowed_to_send_product_pictures",
+      trackingEvent: "is_ai_allowed_to_send_product_pictures",
+    },
 
     // ============================================
     // SEÇÃO 3: CALENDÁRIO E AGENDAMENTOS
@@ -347,6 +439,14 @@ export const chatConfig: ChatbotConfig = {
       ],
       dataKey: "is_ai_allow_to_book_appointments",
       trackingEvent: "is_ai_allow_to_book_appointments",
+    },
+    {
+      id: "if_booking_fails_send_needs_review",
+      type: "choices",
+      botMessage: "Caso a IA não consiga realizar o agendamento (por falta de horários ou problema de integração com o calendário), você quer que a conversa seja marcada para revisão humana?",
+      options: ["Sim", "Não"],
+      dataKey: "if_booking_fails_send_needs_review",
+      trackingEvent: "if_booking_fails_send_needs_review",
     },
     {
       id: "capture_info",
@@ -533,15 +633,13 @@ export const chatConfig: ChatbotConfig = {
     // ============================================
     {
       id: "hot_lead",
-      type: "textarea",
+      type: "hot_lead",
       botMessage: (
         <div className="space-y-2">
           <p>Vamos configurar a qualificação de leads! 🔥</p>
           <p>O que você considera como um lead <strong>muito quente</strong>, <strong>quente</strong> e <strong>morno</strong>? Descreva a lógica para cada classificação.</p>
         </div>
       ),
-      placeholder: "Ex: Muito quente = quer agendar hoje. Quente = perguntou preço. Morno = só tirou dúvidas...",
-      helpText: "Descreva os critérios de qualificação",
       dataKey: "hot_lead",
       trackingEvent: "hot_lead",
     },
@@ -564,7 +662,7 @@ export const chatConfig: ChatbotConfig = {
       botMessage: (
         <div className="space-y-2">
           <p>Configurando notificações! 🔔</p>
-          <p>Em quais casos você quer receber notificações no número de notificações? Pode escolher mais de uma opção.</p>
+          <p>Em quais casos você quer receber notificações? Pode escolher mais de uma opção.</p>
         </div>
       ),
       options: [
@@ -575,6 +673,13 @@ export const chatConfig: ChatbotConfig = {
       minSelect: 1,
       dataKey: "notification",
       trackingEvent: "notification",
+    },
+    {
+      id: "clinic_notification_phone",
+      type: "phone",
+      botMessage: "Em qual número você deseja receber essas notificações sobre agendamentos e alertas importantes?",
+      dataKey: "clinic_notification_phone",
+      trackingEvent: "clinic_notification_phone",
     },
     {
       id: "tasks",
@@ -639,6 +744,58 @@ export const chatConfig: ChatbotConfig = {
       helpText: "Descreva as métricas que seriam úteis para você",
       dataKey: "metricas",
       trackingEvent: "metricas",
+    },
+
+    // ============================================
+    // ANTES DO AGENDAMENTO: INFOS EXTRAS E AVALIAÇÃO
+    // ============================================
+    {
+      id: "when_lost_lead",
+      type: "textarea",
+      botMessage: (
+        <div className="space-y-2">
+          <p>Em que situações você quer que o lead seja marcado como perdido?</p>
+          <p className="text-sm text-[#04152b]/70">Nesses casos a IA coloca o lead no estágio de perdido e nenhum follow-up será enviado; a IA só responderá se o lead enviar nova mensagem.</p>
+        </div>
+      ),
+      placeholder: "Ex: Quando desiste do tratamento, quando escolhe outra clínica, quando pede para parar de enviar mensagens...",
+      helpText: "Descreva as situações que caracterizam lead perdido",
+      dataKey: "when_lost_lead",
+      trackingEvent: "when_lost_lead",
+    },
+    {
+      id: "extra_infos",
+      type: "textarea",
+      botMessage: (
+        <div className="space-y-2">
+          <p>Antes de agendarmos nossa reunião: você tem mais alguma informação relevante para compartilhar?</p>
+          <p className="text-sm text-[#04152b]/70">Qualquer detalhe que seja importante para configurar a IA da sua clínica.</p>
+        </div>
+      ),
+      placeholder: "Ex: Particularidades do atendimento, preferências de horário, observações...",
+      dataKey: "extra_infos",
+      trackingEvent: "extra_infos",
+    },
+    {
+      id: "onboarding_rating",
+      type: "rating",
+      botMessage: (
+        <div className="space-y-2">
+          <p>Que nota você dá para este processo de onboarding?</p>
+          <p className="text-sm text-[#04152b]/70">Sua opinião nos ajuda a melhorar. Clique na nota de 1 a 5 estrelas.</p>
+        </div>
+      ),
+      dataKey: "onboarding_rating",
+      trackingEvent: "onboarding_rating",
+    },
+    {
+      id: "onboarding_rating_feedback",
+      type: "textarea",
+      botMessage: "Como podemos melhorar este processo? Conte para a gente.",
+      placeholder: "Sugestões, críticas, o que faltou...",
+      dataKey: "onboarding_rating_feedback",
+      trackingEvent: "onboarding_rating_feedback",
+      showIf: (userData) => userData.onboarding_rating !== "5",
     },
   ],
 
