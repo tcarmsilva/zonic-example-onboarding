@@ -463,7 +463,7 @@ export function ChatContainer({ config }: ChatContainerProps) {
   return (
     <div className="flex min-h-screen flex-col" style={{ backgroundColor: "#e6eefe" }}>
       <div className="flex-1 overflow-y-auto pb-32">
-        <div className="mx-auto max-w-lg">
+        <div className="mx-auto w-full max-w-2xl px-4 sm:px-6">
           {/* Banner */}
           <div className="py-8">
             <Banner />
@@ -636,7 +636,7 @@ export function ChatContainer({ config }: ChatContainerProps) {
           className="fixed inset-x-0 bottom-0 backdrop-blur-sm p-4 animate-in slide-in-from-bottom duration-300"
           style={{ backgroundColor: "rgba(230, 238, 254, 0.95)" }}
         >
-          <div className="mx-auto max-w-lg">{renderInput()}</div>
+          <div className="mx-auto w-full max-w-2xl px-4 sm:px-6">{renderInput()}</div>
         </div>
       )}
     </div>
