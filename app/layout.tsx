@@ -15,9 +15,13 @@ const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || "YOUR_PIXEL_ID"
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || "GTM-XXXXXXX"
 
 export const metadata: Metadata = {
-  title: "Zonic - Diagnóstico de Inteligência Comercial",
-  description: "A inteligência comercial das maiores clínicas do Brasil",
+  title: "Zonic - Onboarding",
+  description: "Onboarding da Zonic - Configure sua clínica na plataforma",
   generator: "v0.app",
+  openGraph: {
+    title: "Zonic - Onboarding",
+    description: "Onboarding da Zonic - Configure sua clínica na plataforma",
+  },
   icons: {
     icon: "/favicon.png",
     apple: "/favicon.png",
