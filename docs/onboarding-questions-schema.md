@@ -8,12 +8,11 @@ This document lists all question constants (data keys) from the onboarding chatb
 
 | Constant (dataKey) | Step Type | Column Type | Description |
 |--------------------|-----------|-------------|-------------|
-| `project_responsible_role` | choices | **text** | Who is responsible for the project (Dono, Gerente, Atendente, Agência) |
+| `project_responsible_role` | single_role_choice | **text** | Who is responsible for the implementation project (Dono, Gerente, Atendente, Agência) |
 | `project_responsible_name` | text | **text** | Full name of project responsible |
 | `project_responsible_phone` | phone | **text** | Phone of project responsible |
-| `owner_name` | text | **text** | Clinic owner name (conditional) |
-| `owner_phone` | phone | **text** | Clinic owner phone (conditional) |
-| `platform_users` | team_members | **jsonb** | Array of users who will use the platform `[{ name, role, phone?, email? }]` |
+| `project_responsible_email` | email | **text** | Email of project responsible |
+| `platform_users` | team_members | **jsonb** | Array of users who will use the platform (excludes implementation responsible; Dono mandatory if responsible is not Dono) `[{ name, role, phone?, email? }]` |
 | `clinic_name` | text | **text** | Clinic name |
 | `clinic_cnpj` | cnpj | **text** | Clinic CNPJ (formatted) |
 | `clinic_type` | choices | **text** | Clinic type (Estética, Médica, Odonto, Outro) |
@@ -115,12 +114,11 @@ CREATE TABLE onboarding_responses (
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now(),
 
-  -- Section 0: Project responsible
+  -- Section 0: Project responsible & platform users
   project_responsible_role text,
   project_responsible_name text,
   project_responsible_phone text,
-  owner_name text,
-  owner_phone text,
+  project_responsible_email text,
   platform_users jsonb,
 
   -- Section 1: Clinic info
@@ -223,4 +221,4 @@ CREATE TRIGGER onboarding_responses_updated_at
 - **integer**: Use for `how_many_doctors` and `how_many_products`.
 - **jsonb**: Use for arrays or structured data (`platform_users`, `instagram_links`, `operating_hours`, `capture_info`, `deactivation_schedule`, `multi_select` / `multi_text` results).
 - Add your own columns for: user/session id, clinic id, UTM params, or any other metadata you need.
-- Conditional fields (e.g. `owner_name`, `booking_reminder_today`) can stay nullable; they are only filled when the condition is met in the flow.
+- Conditional fields (e.g. `clinic_type_other`, `booking_reminder_today`) can stay nullable; they are only filled when the condition is met in the flow.

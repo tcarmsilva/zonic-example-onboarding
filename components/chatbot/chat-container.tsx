@@ -21,6 +21,8 @@ import { ConversationFlowSelect } from "./conversation-flow-select"
 import { ConversationStyleSelect } from "./conversation-style-select"
 import { CaptureInfoInput } from "./capture-info-input"
 import { TeamMembersInput } from "./team-members-input"
+import { SingleRoleChoiceButtons } from "./single-role-choice-buttons"
+import { ProjectResponsibleDetailsInput } from "./project-responsible-details-input"
 import { InstagramInput } from "./instagram-input"
 import { CnpjInput } from "./cnpj-input"
 import { RatingInput } from "./rating-input"
@@ -75,6 +77,8 @@ export function ChatContainer({ config }: ChatContainerProps) {
   const [showConversationStyle, setShowConversationStyle] = useState(false)
   const [showCaptureInfo, setShowCaptureInfo] = useState(false)
   const [showTeamMembers, setShowTeamMembers] = useState(false)
+  const [showSingleRoleChoice, setShowSingleRoleChoice] = useState(false)
+  const [showProjectResponsibleDetails, setShowProjectResponsibleDetails] = useState(false)
   const [showInstagram, setShowInstagram] = useState(false)
   const [showCnpj, setShowCnpj] = useState(false)
   const [showRating, setShowRating] = useState(false)
@@ -223,7 +227,7 @@ export function ChatContainer({ config }: ChatContainerProps) {
       return
     }
     scrollToBottom()
-  }, [messagesLength, messagesLastId, isTyping, showInput, showChoices, showMultiSelect, showTimezone, showOperatingHours, showDeactivationSchedule, showNumber, showTextarea, showMultiText, showConversationFlow, showConversationStyle, showCaptureInfo, showTeamMembers, showInstagram, showCnpj, showRating, showHotLead, showCalendar])
+  }, [messagesLength, messagesLastId, isTyping, showInput, showChoices, showMultiSelect, showTimezone, showOperatingHours, showDeactivationSchedule, showNumber, showTextarea, showMultiText, showConversationFlow, showConversationStyle, showCaptureInfo, showTeamMembers, showSingleRoleChoice, showProjectResponsibleDetails, showInstagram, showCnpj, showRating, showHotLead, showCalendar])
 
   const addBotMessage = (content: string | React.ReactNode, showAvatar = true) => {
     setMessages((prev) => [
@@ -270,6 +274,8 @@ export function ChatContainer({ config }: ChatContainerProps) {
     setShowConversationStyle(false)
     setShowCaptureInfo(false)
     setShowTeamMembers(false)
+    setShowSingleRoleChoice(false)
+    setShowProjectResponsibleDetails(false)
     setShowInstagram(false)
     setShowCnpj(false)
     setShowRating(false)
@@ -298,22 +304,27 @@ export function ChatContainer({ config }: ChatContainerProps) {
       const showWelcomeMessages = async () => {
         await new Promise((r) => setTimeout(r, 500))
 
-        for (let i = 0; i < config.welcomeMessages.length; i++) {
+        // Inicia a inicialização do onboarding em paralelo às mensagens para não bloquear
+        const existingId = getSavedOnboardingId()
+        const initPromise = initializeOnboarding(existingId)
+
+        const welcomeCount = config.welcomeMessages.length
+        for (let i = 0; i < welcomeCount; i++) {
           const msg = config.welcomeMessages[i]
+          const isLast = i === welcomeCount - 1
           await new Promise<void>((resolve) => {
             simulateTyping(
               () => {
                 addBotMessage(msg.content, msg.showAvatar ?? true)
                 resolve()
               },
-              i === 0 ? 1000 : 1500,
+              i === 0 ? 800 : isLast ? 600 : 1200,
             )
           })
         }
 
-        // Initialize database record for this onboarding session
-        const existingId = getSavedOnboardingId()
-        const result = await initializeOnboarding(existingId)
+        // Aguarda o resultado da inicialização (já pode ter terminado durante as mensagens)
+        const result = await initPromise
         if (result.success && result.id) {
           setOnboardingId(result.id)
           console.log('[Onboarding] Initialized with ID:', result.id)
@@ -376,6 +387,12 @@ export function ChatContainer({ config }: ChatContainerProps) {
       case "team_members":
         setShowTeamMembers(true)
         break
+      case "single_role_choice":
+        setShowSingleRoleChoice(true)
+        break
+      case "project_responsible_details":
+        setShowProjectResponsibleDetails(true)
+        break
       case "instagram":
         setShowInstagram(true)
         break
@@ -403,6 +420,8 @@ export function ChatContainer({ config }: ChatContainerProps) {
     
     if (currentStepIndex >= 0 && currentStepIndex < filteredSteps.length && welcomeComplete && !isComplete) {
       const step = filteredSteps[currentStepIndex]
+      // Delay bem curto na primeira pergunta para transição rápida após "Vamos começar?"
+      const typingDelay = currentStepIndex === 0 ? 300 : 1000
 
       simulateTyping(() => {
         // Show greeting if exists
@@ -422,7 +441,7 @@ export function ChatContainer({ config }: ChatContainerProps) {
 
         // Show appropriate input
         showInputForStep(step)
-      }, 1000)
+      }, typingDelay)
     }
   }, [currentStepIndex, welcomeComplete, isComplete, isCheckingResume, showResumePrompt, getFilteredSteps, userData])
 
@@ -455,6 +474,25 @@ export function ChatContainer({ config }: ChatContainerProps) {
       }
     }
     
+    // Operating hours display (structured JSON -> readable summary)
+    if (step.type === "operating_hours") {
+      try {
+        const parsed = JSON.parse(value) as Record<string, { enabled?: boolean; start?: string; end?: string }>
+        const dayLabels: Record<string, string> = {
+          monday: "Segunda", tuesday: "Terça", wednesday: "Quarta",
+          thursday: "Quinta", friday: "Sexta", saturday: "Sábado", sunday: "Domingo"
+        }
+        const parts = (["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const).map((day) => {
+          const d = parsed[day]
+          if (!d || d.enabled === false) return `${dayLabels[day]}: Fechado`
+          return `${dayLabels[day]}: ${d.start ?? ""} - ${d.end ?? ""}`
+        })
+        if (parts.length) displayMessage = parts.join("\n")
+      } catch {
+        // keep raw value if not valid JSON
+      }
+    }
+
     // Deactivation schedule display
     if (step.type === "deactivation_schedule") {
       try {
@@ -482,6 +520,20 @@ export function ChatContainer({ config }: ChatContainerProps) {
       }
     }
 
+    // Project responsible details: parse JSON and merge name, phone, email into userData
+    if (step.type === "project_responsible_details") {
+      try {
+        const parsed = JSON.parse(value) as {
+          project_responsible_name: string
+          project_responsible_phone: string
+          project_responsible_email: string
+        }
+        displayMessage = parsed.project_responsible_name || "Dados preenchidos"
+      } catch {
+        // keep raw value if not valid JSON
+      }
+    }
+
     addUserMessage(displayMessage)
     hideAllInputs()
 
@@ -491,45 +543,88 @@ export function ChatContainer({ config }: ChatContainerProps) {
       ? JSON.stringify({ option: userData.parking, value })
       : value
 
-    // Save data
-    const updatedUserData = { ...userData, [step.dataKey]: valueToSave }
+    // Save data (project_responsible_details merges three keys; other steps use one dataKey)
+    let updatedUserData: Record<string, string>
+    if (step.type === "project_responsible_details") {
+      try {
+        const parsed = JSON.parse(value) as Record<string, string>
+        updatedUserData = { ...userData, ...parsed }
+      } catch {
+        updatedUserData = { ...userData }
+      }
+    } else {
+      updatedUserData = { ...userData, [step.dataKey]: valueToSave }
+    }
     setUserData(updatedUserData)
 
     // Track event
     if (step.trackingEvent) {
-      GTMEvents.formStep(step.trackingEvent, { [step.dataKey]: valueToSave })
+      GTMEvents.formStep(step.trackingEvent, step.type === "project_responsible_details"
+        ? { project_responsible_name: updatedUserData.project_responsible_name, project_responsible_phone: updatedUserData.project_responsible_phone, project_responsible_email: updatedUserData.project_responsible_email }
+        : { [step.dataKey]: valueToSave })
     }
 
     // Save to database
     if (onboardingId) {
-      saveOnboardingField(onboardingId, step.dataKey, valueToSave)
-        .then((result) => {
-          if (result.success) {
-            console.log(`[Onboarding] Saved ${step.dataKey} to record ${onboardingId}`)
-          } else {
-            console.warn(`[Onboarding] Failed to save ${step.dataKey}:`, result.error)
+      if (step.type === "project_responsible_details") {
+        const keys = ["project_responsible_name", "project_responsible_phone", "project_responsible_email"] as const
+        keys.forEach((key) => {
+          const val = updatedUserData[key]
+          if (val !== undefined) {
+            saveOnboardingField(onboardingId, key, val)
+              .then((result) => {
+                if (result.success) {
+                  console.log(`[Onboarding] Saved ${key} to record ${onboardingId}`)
+                } else {
+                  console.warn(`[Onboarding] Failed to save ${key}:`, result.error)
+                }
+              })
+              .catch((error) => {
+                console.error(`[Onboarding] Error saving ${key}:`, error)
+              })
           }
         })
-        .catch((error) => {
-          console.error(`[Onboarding] Error saving ${step.dataKey}:`, error)
-        })
+      } else {
+        saveOnboardingField(onboardingId, step.dataKey, valueToSave)
+          .then((result) => {
+            if (result.success) {
+              console.log(`[Onboarding] Saved ${step.dataKey} to record ${onboardingId}`)
+            } else {
+              console.warn(`[Onboarding] Failed to save ${step.dataKey}:`, result.error)
+            }
+          })
+          .catch((error) => {
+            console.error(`[Onboarding] Error saving ${step.dataKey}:`, error)
+          })
+      }
     }
 
-    // Find next valid step (considering showIf conditions)
-    const filteredSteps = getFilteredSteps(updatedUserData)
-    const currentFilteredIndex = filteredSteps.findIndex(s => s.id === step.id)
-    const nextIndex = currentFilteredIndex + 1
+    // Find next valid step: use full config.steps order so we don't jump back when
+    // the current step disappears from filtered list after save (e.g. parking_value
+    // overwrites parking with JSON, so its showIf becomes false)
+    const filteredStepsNew = getFilteredSteps(updatedUserData)
+    const fullIndex = config.steps.findIndex(s => s.id === step.id)
+    let nextStep: ChatStep | undefined
+    for (let i = fullIndex + 1; i < config.steps.length; i++) {
+      const candidate = config.steps[i]
+      if (filteredStepsNew.some(s => s.id === candidate.id)) {
+        nextStep = candidate
+        break
+      }
+    }
+    const nextIndex = nextStep ? filteredStepsNew.findIndex(s => s.id === nextStep!.id) : -1
 
-    if (nextIndex < filteredSteps.length) {
-      // Find the actual index in the filtered steps array
+    if (nextIndex >= 0 && nextIndex < filteredStepsNew.length) {
       setCurrentStepIndex(nextIndex)
     } else {
-      // Show completion message
+      setCurrentStepIndex(filteredStepsNew.length)
       showCompletionMessage(updatedUserData)
     }
   }
 
   const showCompletionMessage = (finalUserData: Record<string, string>) => {
+    hideAllInputs()
+
     MetaEvents.CompleteRegistration({
       content_name: config.tracking.completionName,
     })
@@ -615,11 +710,11 @@ export function ChatContainer({ config }: ChatContainerProps) {
     }, 500)
   }
 
-  // Get user data formatted for calendar scheduler
+  // Get user data formatted for calendar scheduler (envia para Cal.com o responsável pelo projeto e seu telefone)
   const getCalendarUserData = () => {
     return {
-      name: userData.clinic_name || "Cliente",
-      phone: userData.clinic_whatsapp_phone || "",
+      name: userData.project_responsible_name || userData.clinic_name || "Cliente",
+      phone: userData.project_responsible_phone || userData.clinic_whatsapp_phone || "",
       clinicName: userData.clinic_name || "",
     }
   }
@@ -719,6 +814,23 @@ export function ChatContainer({ config }: ChatContainerProps) {
             </div>
           )}
 
+          {/* Single role choice (responsável pela implantação) - mesmo visual do print */}
+          {showSingleRoleChoice && currentStep?.options && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-300 py-4">
+              <SingleRoleChoiceButtons options={currentStep.options} onSelect={handleSubmit} />
+            </div>
+          )}
+
+          {/* Project responsible details (card com nome, telefone, e-mail) */}
+          {showProjectResponsibleDetails && userData.project_responsible_role && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-300 py-4">
+              <ProjectResponsibleDetailsInput
+                roleLabel={userData.project_responsible_role}
+                onSubmit={handleSubmit}
+              />
+            </div>
+          )}
+
           {/* Multi Select */}
           {showMultiSelect && currentStep?.options && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-300 py-4">
@@ -811,7 +923,18 @@ export function ChatContainer({ config }: ChatContainerProps) {
           {/* Team Members Input */}
           {showTeamMembers && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-300 py-4">
-              <TeamMembersInput onSubmit={handleSubmit} />
+              <TeamMembersInput
+                onSubmit={handleSubmit}
+                excludedRoleLabel={currentStep?.id === "platform_users" ? userData.project_responsible_role : undefined}
+                requiredRoleLabel={
+                  currentStep?.id === "platform_users" && userData.project_responsible_role !== "Dono(a) da clínica"
+                    ? "Dono(a) da clínica"
+                    : undefined
+                }
+                showNoOneElse={
+                  currentStep?.id === "platform_users" && userData.project_responsible_role === "Dono(a) da clínica"
+                }
+              />
             </div>
           )}
 

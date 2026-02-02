@@ -29,12 +29,12 @@ export async function prefetchSlots(calendarId: CalendarId = "1"): Promise<void>
   try {
     const today = new Date()
     const endDate = new Date(today)
-    endDate.setDate(today.getDate() + 6)
+    endDate.setDate(today.getDate() + 14)
 
     const startDateStr = today.toISOString().split("T")[0]
     const endDateStr = endDate.toISOString().split("T")[0]
 
-    console.log("[v0] Prefetching slots for 7 days:", startDateStr, "to", endDateStr, "calendar:", calendarId)
+    console.log("[v0] Prefetching slots for 15 days:", startDateStr, "to", endDateStr, "calendar:", calendarId)
 
     const url = new URL("/api/cal/slots", window.location.origin)
     url.searchParams.set("startDate", startDateStr)

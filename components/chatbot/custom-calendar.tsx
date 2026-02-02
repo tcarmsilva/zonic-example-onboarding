@@ -54,17 +54,17 @@ export function CustomCalendar({ onSlotSelect, calendarId = "1", calendarIds }: 
       const startDate = today.toISOString().split("T")[0]
 
       const endDateObj = new Date(today)
-      endDateObj.setDate(today.getDate() + 6)
+      endDateObj.setDate(today.getDate() + 14)
       const endDate = endDateObj.toISOString().split("T")[0]
 
       let response
 
       // Se calendarIds for fornecido, agrega slots de múltiplos calendários
       if (calendarIds && calendarIds.length > 0) {
-        console.log("[v0] Fetching aggregated slots for 7 days:", startDate, "to", endDate, "calendars:", calendarIds)
+        console.log("[v0] Fetching aggregated slots for 15 days:", startDate, "to", endDate, "calendars:", calendarIds)
         response = await getAggregatedSlots(startDate, endDate, calendarIds)
       } else {
-        console.log("[v0] Fetching slots for 7 days:", startDate, "to", endDate, "calendar:", calendarId)
+        console.log("[v0] Fetching slots for 15 days:", startDate, "to", endDate, "calendar:", calendarId)
         response = await getAvailableSlots(startDate, endDate, calendarId)
       }
 
@@ -76,7 +76,7 @@ export function CustomCalendar({ onSlotSelect, calendarId = "1", calendarIds }: 
 
       const allDays: DayAvailability[] = []
 
-      for (let i = 0; i < 7; i++) {
+      for (let i = 0; i < 15; i++) {
         const date = new Date(today)
         date.setDate(today.getDate() + i)
         const dateStr = date.toISOString().split("T")[0]
@@ -162,7 +162,7 @@ export function CustomCalendar({ onSlotSelect, calendarId = "1", calendarIds }: 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#0051fe]" />
       </div>
     )
   }
@@ -170,8 +170,8 @@ export function CustomCalendar({ onSlotSelect, calendarId = "1", calendarIds }: 
   if (error) {
     return (
       <div className="text-center py-8">
-        <p className="text-destructive mb-4">{error}</p>
-        <Button onClick={loadAvailability} variant="outline" size="sm">
+        <p className="text-[#04152b] mb-4">{error}</p>
+        <Button onClick={loadAvailability} variant="outline" size="sm" className="border-[#0051fe] text-[#0051fe] hover:bg-[#0051fe]/10">
           Tentar novamente
         </Button>
       </div>
@@ -181,8 +181,8 @@ export function CustomCalendar({ onSlotSelect, calendarId = "1", calendarIds }: 
   if (days.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-muted-foreground mb-4">Não há horários disponíveis nos próximos 7 dias.</p>
-        <Button onClick={loadAvailability} variant="outline" size="sm">
+        <p className="text-[#04152b]/80 mb-4">Não há horários disponíveis nos próximos 15 dias.</p>
+        <Button onClick={loadAvailability} variant="outline" size="sm" className="border-[#0051fe] text-[#0051fe] hover:bg-[#0051fe]/10">
           Tentar novamente
         </Button>
       </div>
@@ -193,7 +193,7 @@ export function CustomCalendar({ onSlotSelect, calendarId = "1", calendarIds }: 
     <div className="space-y-6 px-4">
       {/* Days selector */}
       <div className="space-y-3">
-        <h3 className="text-sm font-medium text-brand-foreground/60">Selecione um dia:</h3>
+        <h3 className="text-sm font-medium text-[#04152b]/80">Selecione um dia:</h3>
         <div className="grid grid-cols-3 gap-3">
           {days.map((day, index) => (
             <button
@@ -201,12 +201,12 @@ export function CustomCalendar({ onSlotSelect, calendarId = "1", calendarIds }: 
               onClick={() => setSelectedDay(index)}
               className={cn(
                 "flex flex-col items-center justify-center rounded-lg p-4 border-2 transition-all",
-                "border-brand-primary/20 hover:border-brand-primary hover:bg-brand-primary/5 cursor-pointer",
-                selectedDay === index && "border-brand-primary bg-brand-primary/10",
+                "border-[#0051fe]/30 hover:border-[#0051fe] hover:bg-[#0051fe]/10 cursor-pointer",
+                selectedDay === index && "border-[#0051fe] bg-[#0051fe]/15",
               )}
             >
-              <span className="text-base font-semibold text-brand-foreground">{day.dayLabel}</span>
-              <span className="text-sm text-brand-foreground/60 mt-1">{day.dayNumber}</span>
+              <span className="text-base font-semibold text-[#04152b]">{day.dayLabel}</span>
+              <span className="text-sm text-[#04152b]/70 mt-1">{day.dayNumber}</span>
             </button>
           ))}
         </div>
@@ -215,13 +215,13 @@ export function CustomCalendar({ onSlotSelect, calendarId = "1", calendarIds }: 
       {/* Time slots */}
       {selectedDay !== null && days[selectedDay]?.slots.length > 0 && (
         <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <h3 className="text-sm font-medium text-brand-foreground/60">Selecione um horário:</h3>
+          <h3 className="text-sm font-medium text-[#04152b]/80">Selecione um horário:</h3>
           <div className="flex flex-wrap justify-center gap-2">
             {days[selectedDay].slots.map((slot, index) => (
               <Button
                 key={index}
                 onClick={() => onSlotSelect(slot.start)}
-                className="rounded-full bg-brand-primary/80 px-5 py-2 text-sm font-medium text-white hover:bg-brand-primary transition-colors"
+                className="rounded-full bg-[#0051fe] px-5 py-2 text-sm font-medium text-white hover:bg-[#0046d9] transition-colors"
               >
                 {slot.formatted}
               </Button>

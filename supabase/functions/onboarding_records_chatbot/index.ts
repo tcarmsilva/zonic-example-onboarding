@@ -109,17 +109,26 @@ function intervalToInteger(value: string | null | undefined): number | null {
   return match ? parseInt(match[1], 10) : null;
 }
 
-// Convert lead status names to IDs
-function leadStatusToIds(statuses: string[] | string | null | undefined): number[] | null {
-  if (!statuses) return null;
-  
-  const statusArray = typeof statuses === 'string' 
-    ? JSON.parse(statuses) 
-    : statuses;
-  
-  if (!Array.isArray(statusArray)) return null;
-  
-  // Map status names to IDs (example mapping - adjust based on your actual status IDs)
+// Convert lead status names to IDs (tabela lead_status: id + name)
+// Coluna reactivation_lead_status_ids é int4[] — enviar sempre number[] (array de inteiros)
+// 1 New Lead, 2 In Touch, 3 Interested, 4 Willing To Book, 5 Appointment No-show,
+// 6 Appointment Booked, 7 Willing to Buy, 8 Purchased, 999 Lost
+function leadStatusToIds(statuses: string[] | string | null | undefined): number[] {
+  if (statuses === null || statuses === undefined) return [];
+
+  let statusArray: string[];
+  if (typeof statuses === "string") {
+    try {
+      const parsed = JSON.parse(statuses);
+      statusArray = Array.isArray(parsed) ? parsed.map(String) : statuses.split(",").map((s) => s.trim());
+    } catch {
+      // Frontend multi_select envia "Em Contato, Interessado" (vírgula + espaço)
+      statusArray = statuses.split(",").map((s) => s.trim()).filter(Boolean);
+    }
+  } else {
+    statusArray = Array.isArray(statuses) ? statuses.map(String) : [];
+  }
+
   const statusMap: Record<string, number> = {
     "Novo Lead": 1,
     "Em Contato": 2,
@@ -129,9 +138,14 @@ function leadStatusToIds(statuses: string[] | string | null | undefined): number
     "Agendado": 6,
     "Disposto a Comprar": 7,
     "Comprou": 8,
+    "Perdido": 999,
+    "Lost": 999,
   };
-  
-  return statusArray.map(s => statusMap[s]).filter(id => id !== undefined);
+
+  const ids = statusArray
+    .map((s) => (typeof s === "string" ? statusMap[s.trim()] : undefined))
+    .filter((id): id is number => id !== undefined && id !== null);
+  return ids;
 }
 
 // Parse JSON safely
@@ -144,13 +158,109 @@ function parseJsonSafe(value: string | unknown): unknown {
   }
 }
 
-// Parse deactivation schedule to availability_blocks format
-// Expected output format:
-// {
-//   "monday": { "start_h": 8, "end_h": 19 },
-//   "tuesday": { "start_h": 8, "end_h": 19 },
-//   ...
-// }
+// Day key to RRULE BYDAY code
+const DAY_TO_RRULE: Record<string, string> = {
+  monday: "MO",
+  tuesday: "TU",
+  wednesday: "WE",
+  thursday: "TH",
+  friday: "FR",
+  saturday: "SA",
+  sunday: "SU",
+};
+
+const DAY_ORDER = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+
+// Convert operating_hours (frontend state) to availability_blocks format:
+// [{ rrule: "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR", start_time: "09:00", end_time: "17:00" }]
+function operatingHoursToAvailabilityBlocks(
+  value: Record<string, { enabled?: boolean; start?: string; end?: string }>
+): { rrule: string; start_time: string; end_time: string }[] {
+  const blocks: { rrule: string; start_time: string; end_time: string }[] = [];
+  const enabledSlots: { day: string; start: string; end: string }[] = [];
+
+  for (const dayKey of DAY_ORDER) {
+    const day = value[dayKey];
+    if (day && day.enabled !== false && day.start && day.end) {
+      enabledSlots.push({
+        day: dayKey,
+        start: day.start,
+        end: day.end,
+      });
+    }
+  }
+
+  // Group consecutive days (in week order) with same start/end into one rrule block
+  let i = 0;
+  while (i < enabledSlots.length) {
+    const slot = enabledSlots[i];
+    const days: string[] = [DAY_TO_RRULE[slot.day]];
+    let j = i + 1;
+    const dayIndex = (d: string) => DAY_ORDER.indexOf(d);
+    while (
+      j < enabledSlots.length &&
+      enabledSlots[j].start === slot.start &&
+      enabledSlots[j].end === slot.end &&
+      dayIndex(enabledSlots[j].day) === dayIndex(enabledSlots[j - 1].day) + 1
+    ) {
+      days.push(DAY_TO_RRULE[enabledSlots[j].day]);
+      j++;
+    }
+    blocks.push({
+      rrule: `FREQ=WEEKLY;BYDAY=${days.join(",")}`,
+      start_time: slot.start,
+      end_time: slot.end,
+    });
+    i = j;
+  }
+
+  return blocks;
+}
+
+// Convert deactivation schedule (day -> { start_h, end_h }) to availability_blocks format:
+// [{ rrule: "FREQ=WEEKLY;BYDAY=MO,TU,...", start_time: "09:00", end_time: "18:00" }]
+function deactivationScheduleToAvailabilityBlocks(
+  schedule: Record<string, { start_h: number; end_h: number }>
+): { rrule: string; start_time: string; end_time: string }[] {
+  const blocks: { rrule: string; start_time: string; end_time: string }[] = [];
+  const enabledSlots: { day: string; start_time: string; end_time: string }[] = [];
+
+  for (const dayKey of DAY_ORDER) {
+    const day = schedule[dayKey];
+    if (day && typeof day.start_h === "number" && typeof day.end_h === "number") {
+      const start_time = `${String(day.start_h).padStart(2, "0")}:00`;
+      const end_time = `${String(day.end_h).padStart(2, "0")}:00`;
+      enabledSlots.push({ day: dayKey, start_time, end_time });
+    }
+  }
+
+  let i = 0;
+  while (i < enabledSlots.length) {
+    const slot = enabledSlots[i];
+    const days: string[] = [DAY_TO_RRULE[slot.day]];
+    let j = i + 1;
+    const dayIndex = (d: string) => DAY_ORDER.indexOf(d);
+    while (
+      j < enabledSlots.length &&
+      enabledSlots[j].start_time === slot.start_time &&
+      enabledSlots[j].end_time === slot.end_time &&
+      dayIndex(enabledSlots[j].day) === dayIndex(enabledSlots[j - 1].day) + 1
+    ) {
+      days.push(DAY_TO_RRULE[enabledSlots[j].day]);
+      j++;
+    }
+    blocks.push({
+      rrule: `FREQ=WEEKLY;BYDAY=${days.join(",")}`,
+      start_time: slot.start_time,
+      end_time: slot.end_time,
+    });
+    i = j;
+  }
+
+  return blocks;
+}
+
+// Parse deactivation schedule (retorna objeto day -> { start_h, end_h } para coluna deactivation_schedule)
 function parseDeactivationSchedule(value: string | unknown): Record<string, { start_h: number; end_h: number }> | null {
   const parsed = typeof value === 'string' ? parseJsonSafe(value) : value;
   
@@ -193,7 +303,6 @@ const DIRECT_COLUMN_MAP: Record<string, string> = {
   "clinic_timezone": "timezone",
   "clinic_address": "address",
   "clinic_google_maps_link": "google_maps_link",
-  "operating_hours": "operating_hours",
   "parking": "parking",
   
   // AI Configuration
@@ -209,7 +318,7 @@ const DIRECT_COLUMN_MAP: Record<string, string> = {
   
   // AI Behavior
   "deactivate_on_human_reply": "deactivate_on_human_reply", // needs boolean conversion
-  "deactivation_schedule": "availability_blocks", // Maps to availability_blocks column
+  // deactivation_schedule tratado à parte: coluna deactivation_schedule + availability_blocks (formato array)
   "is_smart_followups_activated": "is_smart_followups_activated", // needs boolean conversion
   "ai_reactivation_interval": "ai_reactivation_interval", // needs integer conversion
   "reactivation_lead_status_ids": "reactivation_lead_status_ids", // needs array conversion
@@ -217,6 +326,8 @@ const DIRECT_COLUMN_MAP: Record<string, string> = {
   // CRM
   "crm_provider": "crm_provider",
   "conversation_style": "communication_style",
+  // AI: conversation flow (Qual forma de conversa você prefere...) -> template_type
+  "conversation_flow": "template_type",
 };
 
 // Fields that trigger is_clinic_info_added = true
@@ -248,7 +359,7 @@ const BOOLEAN_FIELDS = new Set([
 // JSON COLUMN MAPPINGS
 // ============================================
 
-// custom_instructions_inputs: AI instructions and custom behavior
+// custom_instructions_inputs: AI instructions and custom behavior (não incluir campos que têm coluna própria)
 const CUSTOM_INSTRUCTIONS_FIELDS = new Set([
   "greeting",
   "ai_assistant_role",
@@ -268,11 +379,15 @@ const CUSTOM_INSTRUCTIONS_FIELDS = new Set([
   "is_ai_allowed_to_send_product_prices",
   "is_ai_allowed_to_send_product_pictures",
   // Lead qualification
-  "lead_status_ai_activated",
   "hot_lead",
+  // Onboarding / notificação
+  "notification",
+  "when_lost_lead",
+  // PIX
+  "clinic_pix_key",
 ]);
 
-// calendar_logic_json: Calendar and booking settings
+// calendar_logic_json: Calendar and booking settings (booking_permission_* definidos no handler is_ai_allow_to_book_appointments)
 const CALENDAR_LOGIC_FIELDS = new Set([
   "crm_provider_other",
 ]);
@@ -282,6 +397,7 @@ const CLIENT_DATA_FIELDS = new Set([
   "project_responsible_role",
   "project_responsible_name",
   "project_responsible_phone",
+  "project_responsible_email",
   "owner_name",
   "owner_phone",
   "platform_users",
@@ -289,7 +405,7 @@ const CLIENT_DATA_FIELDS = new Set([
   "clinic_type",
   "clinic_type_other",
   "clinic_website",
-  "clinic_pix_key",
+  "lead_status_ai_activated",
 ]);
 
 // products: Product/service information
@@ -303,11 +419,9 @@ const PAIN_POINTS_FIELDS = new Set([
   "main_pain_points",
 ]);
 
-// onboarding_data: General onboarding data
+// onboarding_data: General onboarding data (notification e when_lost_lead vão em custom_instructions_inputs)
 const ONBOARDING_DATA_FIELDS = new Set([
-  "notification",
   "ads",
-  "when_lost_lead",
   // CRM familiarity and imports
   "familiar_to_crm",
   "import_contacts",
@@ -380,6 +494,35 @@ function buildPayload(data: Record<string, unknown>, existingRecord?: Record<str
       hasClinicInfoField = true;
     }
     
+    // deactivation_schedule: coluna deactivation_schedule (objeto) + availability_blocks sempre no formato array
+    if (key === "deactivation_schedule") {
+      const parsed = parseDeactivationSchedule(value);
+      payload.deactivation_schedule = parsed;
+      if (parsed !== null) {
+        payload.availability_blocks = deactivationScheduleToAvailabilityBlocks(parsed);
+      }
+      continue;
+    }
+
+    // Horários de funcionamento (pergunta: "Quais são os horários de funcionamento da sua clínica?")
+    // -> operating_hours (text), opening_hours (json), availability_blocks (formato array)
+    if (key === "operating_hours") {
+      const parsed = typeof value === "string" ? parseJsonSafe(value) : value;
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        const hoursObj = parsed as Record<string, { enabled?: boolean; start?: string; end?: string }>;
+        const hasDayKeys = DAY_ORDER.some((d) => d in hoursObj);
+        if (hasDayKeys) {
+          // availability_blocks: sempre JSON no formato [{ rrule, start_time, end_time }, ...]
+          const blocks = operatingHoursToAvailabilityBlocks(hoursObj);
+          payload.availability_blocks = blocks;
+          // operating_hours é coluna text: sempre enviar texto (JSON string)
+          payload.operating_hours = JSON.stringify(hoursObj);
+          payload.opening_hours = hoursObj;
+        }
+      }
+      continue;
+    }
+    
     // Handle phone fields
     if (PHONE_FIELDS[key]) {
       const phoneNumber = phoneToNumber(String(value));
@@ -397,10 +540,10 @@ function buildPayload(data: Record<string, unknown>, existingRecord?: Record<str
     if (key === "is_ai_allow_to_book_appointments") {
       const bookingPerm = parseBookingPermission(String(value));
       payload.is_ai_allow_to_book_appointments = bookingPerm.allowed;
-      // Store the specificity and raw value in custom_instructions_inputs
-      customInstructions.booking_permission_specificity = bookingPerm.specificity;
-      customInstructions.is_ai_allow_to_book_appointments_raw = String(value);
-      hasCustomInstructionsChanges = true;
+      // Store in calendar_logic_json
+      calendarLogic.booking_permission_specificity = bookingPerm.specificity;
+      calendarLogic.is_ai_allow_to_book_appointments_raw = String(value);
+      hasCalendarLogicChanges = true;
       continue;
     }
     
@@ -409,36 +552,26 @@ function buildPayload(data: Record<string, unknown>, existingRecord?: Record<str
       const columnName = DIRECT_COLUMN_MAP[key];
       let processedValue: unknown = value;
       
-      // Convert booleans
+      // Convert booleans (coluna própria; não salvar _raw em custom_instructions)
       if (BOOLEAN_FIELDS.has(key)) {
         processedValue = stringToBoolean(String(value));
-        // Also store raw value in custom_instructions for context
-        if (processedValue !== null) {
-          customInstructions[`${key}_raw`] = String(value);
-          hasCustomInstructionsChanges = true;
-        }
       }
-      // Convert ai_reactivation_interval to integer
+      // Convert ai_reactivation_interval to integer (coluna ai_reactivation_interval)
       else if (key === "ai_reactivation_interval") {
         processedValue = intervalToInteger(String(value));
-        // Also store raw value
-        customInstructions.ai_reactivation_interval_raw = String(value);
-        hasCustomInstructionsChanges = true;
       }
       // Convert reactivation_lead_status_ids to integer array
       else if (key === "reactivation_lead_status_ids") {
         processedValue = leadStatusToIds(value as string[] | string);
       }
-      // Parse deactivation_schedule to availability_blocks format
-      else if (key === "deactivation_schedule") {
-        processedValue = parseDeactivationSchedule(value);
-        // Also store raw value for reference
-        customInstructions.deactivation_schedule_raw = parseJsonSafe(value);
-        hasCustomInstructionsChanges = true;
-      }
-      // Parse JSON for operating_hours
-      else if (key === "operating_hours") {
-        processedValue = parseJsonSafe(value);
+      // template_type (from conversation_flow): extract string from object if needed
+      else if (key === "conversation_flow" && columnName === "template_type") {
+        if (typeof value === "string") {
+          processedValue = sanitizeString(value);
+        } else if (value && typeof value === "object") {
+          const obj = value as Record<string, unknown>;
+          processedValue = sanitizeString(String(obj.id ?? obj.name ?? obj.value ?? JSON.stringify(value)));
+        }
       }
       // Sanitize strings
       else if (typeof value === 'string') {
@@ -514,10 +647,8 @@ function buildPayload(data: Record<string, unknown>, existingRecord?: Record<str
     hasOnboardingDataChanges = true;
   }
 
-  // Set is_clinic_info_added to true if any clinic info field was provided
-  if (hasClinicInfoField) {
-    payload.is_clinic_info_added = true;
-  }
+  // is_clinic_info_added: always true when saving onboarding data
+  payload.is_clinic_info_added = true;
 
   // Only add JSON columns if they have changes
   if (hasCustomInstructionsChanges || Object.keys(customInstructions).length > 0) {

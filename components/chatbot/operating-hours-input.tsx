@@ -64,14 +64,8 @@ export function OperatingHoursInput({ onSubmit, className }: OperatingHoursInput
   }
 
   const handleSubmit = () => {
-    // Format as JSON string for storage
-    const formattedHours = DAYS_OF_WEEK.map(day => {
-      const dayHours = hours[day.key]
-      if (!dayHours.enabled) return `${day.label}: Fechado`
-      return `${day.label}: ${dayHours.start} - ${dayHours.end}`
-    }).join("\n")
-    
-    onSubmit(formattedHours)
+    // Send structured JSON for backend to map to availability_blocks + opening_hours
+    onSubmit(JSON.stringify(hours))
   }
 
   const hasAnyEnabled = Object.values(hours).some(h => h.enabled)

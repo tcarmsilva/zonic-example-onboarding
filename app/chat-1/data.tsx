@@ -42,12 +42,17 @@ export const chatConfig: ChatbotConfig = {
 
   steps: [
     // ============================================
-    // SEÇÃO 0: RESPONSÁVEL PELO PROJETO
+    // SEÇÃO 0: RESPONSÁVEL PELO PROJETO DE IMPLANTAÇÃO
     // ============================================
     {
       id: "project_responsible_role",
-      type: "choices",
-      botMessage: "Primeiro, quem é o responsável por este projeto de implantação da Zonic?",
+      type: "single_role_choice",
+      botMessage: (
+        <div className="space-y-2">
+          <p>Quem é o responsável pelo projeto de implantação da Zonic na clínica?</p>
+          <p className="text-sm text-[#04152b]/70">Selecione uma opção e preencha os dados abaixo.</p>
+        </div>
+      ),
       options: [
         "Dono(a) da clínica",
         "Gerente",
@@ -58,37 +63,13 @@ export const chatConfig: ChatbotConfig = {
       trackingEvent: "project_responsible_role",
     },
     {
-      id: "project_responsible_name",
-      type: "text",
-      botMessage: "Qual é o seu nome completo?",
-      placeholder: "Nome completo",
-      dataKey: "project_responsible_name",
-      trackingEvent: "project_responsible_name",
+      id: "project_responsible_details",
+      type: "project_responsible_details",
+      botMessage: "Preencha os dados do responsável pelo projeto de implantação:",
+      dataKey: "project_responsible_details",
+      trackingEvent: "project_responsible_details",
     },
-    {
-      id: "project_responsible_phone",
-      type: "phone",
-      botMessage: "Qual é o seu telefone de contato?",
-      dataKey: "project_responsible_phone",
-      trackingEvent: "project_responsible_phone",
-    },
-    {
-      id: "owner_name",
-      type: "text",
-      botMessage: "Qual é o nome do(a) dono(a) da clínica?",
-      placeholder: "Nome completo do(a) proprietário(a)",
-      dataKey: "owner_name",
-      trackingEvent: "owner_name",
-      showIf: (userData) => userData.project_responsible_role !== "Dono(a) da clínica",
-    },
-    {
-      id: "owner_phone",
-      type: "phone",
-      botMessage: "Qual é o telefone do(a) dono(a) da clínica?",
-      dataKey: "owner_phone",
-      trackingEvent: "owner_phone",
-      showIf: (userData) => userData.project_responsible_role !== "Dono(a) da clínica",
-    },
+    // Quem vai usar a plataforma (exclui o responsável pela implantação; Dono obrigatório se responsável não for Dono)
     {
       id: "platform_users",
       type: "team_members",

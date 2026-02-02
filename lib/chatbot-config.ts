@@ -19,6 +19,8 @@ export type StepInputType =
   | "conversation_style"
   | "capture_info"
   | "team_members"
+  | "single_role_choice"
+  | "project_responsible_details"
   | "instagram"
   | "hot_lead"
 
