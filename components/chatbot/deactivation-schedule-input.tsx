@@ -64,17 +64,30 @@ export function DeactivationScheduleInput({ onSubmit, className }: DeactivationS
 
   const handleSubmit = () => {
     if (mode === "always_on") {
-      onSubmit("Sempre ligada")
+      // Send empty object for "always on" mode (no deactivation schedule)
+      onSubmit(JSON.stringify({ mode: "always_on" }))
     } else {
-      const formatted = DAYS_OF_WEEK
-        .filter(day => schedule[day.key].enabled)
-        .map(day => {
-          const s = schedule[day.key]
-          return `${day.label}: ${s.start} - ${s.end}`
-        })
-        .join(", ")
+      // Build the schedule object in the required format
+      const scheduleData: Record<string, { start_h: number; end_h: number }> = {}
       
-      onSubmit(`Desligada: ${formatted || "Nenhum dia selecionado"}`)
+      DAYS_OF_WEEK.forEach(day => {
+        if (schedule[day.key].enabled) {
+          const s = schedule[day.key]
+          // Extract hour from "HH:00" format
+          const startHour = parseInt(s.start.split(":")[0], 10)
+          const endHour = parseInt(s.end.split(":")[0], 10)
+          
+          scheduleData[day.key] = {
+            start_h: startHour,
+            end_h: endHour
+          }
+        }
+      })
+      
+      onSubmit(JSON.stringify({
+        mode: "scheduled",
+        schedule: scheduleData
+      }))
     }
   }
 

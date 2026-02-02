@@ -4,31 +4,63 @@ import type React from "react"
 
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowUp, ChevronDown } from "lucide-react"
+import { ArrowUp, ChevronDown, Search } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const COUNTRIES: { code: string; dial: string; flag: string; name: string }[] = [
+  // América do Sul
   { code: "BR", dial: "55", flag: "🇧🇷", name: "Brasil" },
-  { code: "US", dial: "1", flag: "🇺🇸", name: "Estados Unidos" },
   { code: "AR", dial: "54", flag: "🇦🇷", name: "Argentina" },
+  { code: "BO", dial: "591", flag: "🇧🇴", name: "Bolívia" },
+  { code: "CL", dial: "56", flag: "🇨🇱", name: "Chile" },
+  { code: "CO", dial: "57", flag: "🇨🇴", name: "Colômbia" },
+  { code: "EC", dial: "593", flag: "🇪🇨", name: "Equador" },
+  { code: "GY", dial: "592", flag: "🇬🇾", name: "Guiana" },
+  { code: "PY", dial: "595", flag: "🇵🇾", name: "Paraguai" },
+  { code: "PE", dial: "51", flag: "🇵🇪", name: "Peru" },
+  { code: "SR", dial: "597", flag: "🇸🇷", name: "Suriname" },
+  { code: "UY", dial: "598", flag: "🇺🇾", name: "Uruguai" },
+  { code: "VE", dial: "58", flag: "🇻🇪", name: "Venezuela" },
+  // América do Norte
+  { code: "US", dial: "1", flag: "🇺🇸", name: "Estados Unidos" },
+  { code: "CA", dial: "1", flag: "🇨🇦", name: "Canadá" },
   { code: "MX", dial: "52", flag: "🇲🇽", name: "México" },
+  // América Central
+  { code: "BZ", dial: "501", flag: "🇧🇿", name: "Belize" },
+  { code: "CR", dial: "506", flag: "🇨🇷", name: "Costa Rica" },
+  { code: "SV", dial: "503", flag: "🇸🇻", name: "El Salvador" },
+  { code: "GT", dial: "502", flag: "🇬🇹", name: "Guatemala" },
+  { code: "HN", dial: "504", flag: "🇭🇳", name: "Honduras" },
+  { code: "MX", dial: "52", flag: "🇲🇽", name: "México" },
+  { code: "NI", dial: "505", flag: "🇳🇮", name: "Nicarágua" },
+  { code: "PA", dial: "507", flag: "🇵🇦", name: "Panamá" },
+  // Caribe
+  { code: "CU", dial: "53", flag: "🇨🇺", name: "Cuba" },
+  { code: "DO", dial: "1", flag: "🇩🇴", name: "República Dominicana" },
+  { code: "HT", dial: "509", flag: "🇭🇹", name: "Haiti" },
+  { code: "JM", dial: "1876", flag: "🇯🇲", name: "Jamaica" },
+  { code: "TT", dial: "1868", flag: "🇹🇹", name: "Trinidad e Tobago" },
+  // Europa
   { code: "GB", dial: "44", flag: "🇬🇧", name: "Reino Unido" },
   { code: "PT", dial: "351", flag: "🇵🇹", name: "Portugal" },
   { code: "ES", dial: "34", flag: "🇪🇸", name: "Espanha" },
-  { code: "CO", dial: "57", flag: "🇨🇴", name: "Colômbia" },
-  { code: "CL", dial: "56", flag: "🇨🇱", name: "Chile" },
-  { code: "PE", dial: "51", flag: "🇵🇪", name: "Peru" },
-  { code: "UY", dial: "598", flag: "🇺🇾", name: "Uruguai" },
-  { code: "PY", dial: "595", flag: "🇵🇾", name: "Paraguai" },
-  { code: "EC", dial: "593", flag: "🇪🇨", name: "Equador" },
-  { code: "BO", dial: "591", flag: "🇧🇴", name: "Bolívia" },
-  { code: "VE", dial: "58", flag: "🇻🇪", name: "Venezuela" },
-  { code: "CA", dial: "1", flag: "🇨🇦", name: "Canadá" },
-  { code: "DE", dial: "49", flag: "🇩🇪", name: "Alemanha" },
   { code: "FR", dial: "33", flag: "🇫🇷", name: "França" },
+  { code: "DE", dial: "49", flag: "🇩🇪", name: "Alemanha" },
   { code: "IT", dial: "39", flag: "🇮🇹", name: "Itália" },
+  { code: "NL", dial: "31", flag: "🇳🇱", name: "Países Baixos" },
+  { code: "BE", dial: "32", flag: "🇧🇪", name: "Bélgica" },
+  { code: "CH", dial: "41", flag: "🇨🇭", name: "Suíça" },
+  { code: "AT", dial: "43", flag: "🇦🇹", name: "Áustria" },
+  // Ásia
+  { code: "CN", dial: "86", flag: "🇨🇳", name: "China" },
   { code: "JP", dial: "81", flag: "🇯🇵", name: "Japão" },
-  { code: "AU", dial: "61", flag: "🇦🇺", name: "Austrália" },
+  { code: "KR", dial: "82", flag: "🇰🇷", name: "Coreia do Sul" },
+  { code: "IN", dial: "91", flag: "🇮🇳", name: "Índia" },
+  { code: "ID", dial: "62", flag: "🇮🇩", name: "Indonésia" },
+  { code: "PH", dial: "63", flag: "🇵🇭", name: "Filipinas" },
+  { code: "SG", dial: "65", flag: "🇸🇬", name: "Singapura" },
+  { code: "MY", dial: "60", flag: "🇲🇾", name: "Malásia" },
+  { code: "VN", dial: "84", flag: "🇻🇳", name: "Vietnam" }
 ]
 
 interface PhoneInputProps {
@@ -40,13 +72,22 @@ export function PhoneInput({ onSubmit, className }: PhoneInputProps) {
   const [value, setValue] = useState("")
   const [error, setError] = useState("")
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
   const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0])
   const inputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     inputRef.current?.focus()
   }, [])
+
+  useEffect(() => {
+    if (dropdownOpen) {
+      setSearchQuery("")
+      searchInputRef.current?.focus()
+    }
+  }, [dropdownOpen])
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -59,6 +100,13 @@ export function PhoneInput({ onSubmit, className }: PhoneInputProps) {
     }
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [dropdownOpen])
+
+  const filteredCountries = COUNTRIES.filter(
+    (c) =>
+      c.name.toLowerCase().includes(searchQuery.toLowerCase().trim()) ||
+      c.dial.includes(searchQuery.trim()) ||
+      c.code.toLowerCase().includes(searchQuery.toLowerCase().trim())
+  )
 
   const formatPhone = (input: string) => {
     const numbers = input.replace(/\D/g, "")
@@ -145,32 +193,63 @@ export function PhoneInput({ onSubmit, className }: PhoneInputProps) {
           </button>
           {dropdownOpen && (
             <div
-              className="absolute left-0 top-full z-50 mt-1 max-h-64 w-56 overflow-auto rounded-xl border-2 border-[#0051fe] bg-white shadow-lg"
+              className="absolute bottom-full left-0 z-50 mb-1 w-56 overflow-hidden rounded-xl border-2 border-[#0051fe] bg-white shadow-lg"
               role="listbox"
             >
-              {COUNTRIES.map((country) => (
-                <button
-                  key={country.code}
-                  type="button"
-                  role="option"
-                  aria-selected={selectedCountry.code === country.code}
-                  onClick={() => {
-                    setSelectedCountry(country)
-                    setDropdownOpen(false)
-                    setValue("")
-                    setError("")
-                    inputRef.current?.focus()
-                  }}
-                  className={cn(
-                    "flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm text-[#04152b] hover:bg-[#0051fe]/10 transition-colors",
-                    selectedCountry.code === country.code && "bg-[#0051fe]/15 font-medium"
-                  )}
-                >
-                  <span className="text-xl">{country.flag}</span>
-                  <span className="flex-1">{country.name}</span>
-                  <span className="font-medium text-[#0051fe]">+{country.dial}</span>
-                </button>
-              ))}
+              <div className="sticky top-0 border-b border-[#0051fe]/20 bg-white p-2">
+                <div className="flex items-center gap-2 rounded-lg bg-[#04152b]/5 px-2 py-1.5">
+                  <Search className="size-4 shrink-0 text-[#04152b]/50" />
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && filteredCountries[0]) {
+                        e.preventDefault()
+                        setSelectedCountry(filteredCountries[0])
+                        setDropdownOpen(false)
+                        setValue("")
+                        setError("")
+                        inputRef.current?.focus()
+                      }
+                    }}
+                    placeholder="Buscar país ou código..."
+                    className="flex-1 bg-transparent text-sm text-[#04152b] placeholder:text-[#04152b]/50 outline-none"
+                  />
+                </div>
+              </div>
+              <div className="max-h-56 overflow-auto">
+                {filteredCountries.length > 0 ? (
+                  filteredCountries.map((country) => (
+                    <button
+                      key={country.code}
+                      type="button"
+                      role="option"
+                      aria-selected={selectedCountry.code === country.code}
+                      onClick={() => {
+                        setSelectedCountry(country)
+                        setDropdownOpen(false)
+                        setValue("")
+                        setError("")
+                        inputRef.current?.focus()
+                      }}
+                      className={cn(
+                        "flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm text-[#04152b] hover:bg-[#0051fe]/10 transition-colors",
+                        selectedCountry.code === country.code && "bg-[#0051fe]/15 font-medium"
+                      )}
+                    >
+                      <span className="text-xl">{country.flag}</span>
+                      <span className="flex-1">{country.name}</span>
+                      <span className="font-medium text-[#0051fe]">+{country.dial}</span>
+                    </button>
+                  ))
+                ) : (
+                  <p className="px-3 py-4 text-center text-sm text-[#04152b]/60">
+                    Nenhum país encontrado
+                  </p>
+                )}
+              </div>
             </div>
           )}
         </div>

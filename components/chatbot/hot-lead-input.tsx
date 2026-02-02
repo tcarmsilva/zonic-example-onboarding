@@ -68,7 +68,7 @@ export function HotLeadInput({ onSubmit, className }: HotLeadInputProps) {
               value={values[key]}
               onChange={(e) => setValue(key, e.target.value)}
               onKeyDown={(e) => handleKeyDown(e, key)}
-              placeholder={`Ex: ${key === "muito_quente" ? "Quer agendar hoje" : key === "quente" ? "Perguntou preço" : "Só tirou dúvidas"}...`}
+              placeholder={`Ex: ${key === "muito_quente" ? "Lavieen, preenchimentos, quer agendar hoje" : key === "quente" ? "Botox, harmonização, perguntou preço" : "Limpeza de pele, hidratação"}...`}
               className="flex-1 bg-transparent text-[#04152b] placeholder:text-[#04152b]/50 outline-none text-base"
             />
           </div>

@@ -25,6 +25,14 @@ export const chatConfig: ChatbotConfig = {
     {
       content: (
         <span>
+          Para agilizar, tenha em mãos: <strong>CNPJ</strong> da clínica, <strong>telefones</strong> de contato, <strong>endereço</strong> e, se tiver, perfis do <strong>Instagram</strong>.
+        </span>
+      ),
+      showAvatar: false,
+    },
+    {
+      content: (
+        <span>
           São algumas perguntas rápidas para personalizar a sua experiência. Vamos começar?
         </span>
       ),
@@ -208,6 +216,16 @@ export const chatConfig: ChatbotConfig = {
       trackingEvent: "parking",
     },
     {
+      id: "parking_value",
+      type: "text",
+      botMessage: "Qual o valor do estacionamento?",
+      placeholder: "Ex: R$ 10, R$ 15 por hora",
+      dataKey: "parking",
+      trackingEvent: "parking_value",
+      showIf: (userData) =>
+        userData.parking === "Sim, pago" || userData.parking === "Sim, conveniado",
+    },
+    {
       id: "is_clinic_pix_shared",
       type: "choices",
       botMessage: "Você quer que a chave PIX da clínica seja compartilhada com os pacientes? Isso costuma ser usado após o agendamento, por exemplo para o paciente pagar um sinal ou a consulta.",
@@ -365,6 +383,7 @@ export const chatConfig: ChatbotConfig = {
       options: [
         "Sim, só de consulta",
         "Sim, só de tratamento",
+        "Sim, de consultas e de tratamentos",
         "Nunca enviar valores",
       ],
       dataKey: "is_ai_allowed_to_send_product_prices",
@@ -396,7 +415,7 @@ export const chatConfig: ChatbotConfig = {
         "Infosoft",
         "Clinicorp",
         "Belle",
-        "Cal.com",
+        "Google Calendar",
         "Trinks",
         "Clínica Ágil",
         "Prontuário Verde",
@@ -432,10 +451,12 @@ export const chatConfig: ChatbotConfig = {
     {
       id: "is_ai_allow_to_book_appointments",
       type: "choices",
-      botMessage: "A IA pode agendar consultas automaticamente, ou você prefere que ela apenas coloque os pedidos de agendamento para revisão humana?",
+      botMessage: "A IA pode agendar automaticamente ou você prefere enviar para revisão humana? Alguns clientes agendam só consultas, outros só tratamentos, outros os dois.",
       options: [
-        "Pode agendar automaticamente",
-        "Apenas colocar para revisão",
+        "Apenas consultas",
+        "Apenas tratamentos",
+        "Consultas e tratamentos",
+        "Nenhum, enviar para revisão humana",
       ],
       dataKey: "is_ai_allow_to_book_appointments",
       trackingEvent: "is_ai_allow_to_book_appointments",
@@ -637,7 +658,8 @@ export const chatConfig: ChatbotConfig = {
       botMessage: (
         <div className="space-y-2">
           <p>Vamos configurar a qualificação de leads! 🔥</p>
-          <p>O que você considera como um lead <strong>muito quente</strong>, <strong>quente</strong> e <strong>morno</strong>? Descreva a lógica para cada classificação.</p>
+          <p>O que você considera como um lead <strong>muito quente</strong>, <strong>quente</strong> e <strong>morno</strong>? Recomendamos usar procedimentos ou tratamentos de maior relevância/ticket para cada classificação.</p>
+          <p className="text-sm text-[#04152b]/70">Ex: lead quente = quem entra em contato perguntando sobre tratamentos mais caros (Botox, preenchimentos); lead morno = procedimentos de menor valor (limpeza de pele, hidratação).</p>
         </div>
       ),
       dataKey: "hot_lead",
@@ -731,6 +753,20 @@ export const chatConfig: ChatbotConfig = {
       trackingEvent: "ads",
     },
     {
+      id: "when_lost_lead",
+      type: "textarea",
+      botMessage: (
+        <div className="space-y-2">
+          <p>Em que situações você quer que o lead seja marcado como perdido?</p>
+          <p className="text-sm text-[#04152b]/70">Nesses casos a IA coloca o lead no estágio de perdido e nenhum follow-up será enviado; a IA só responderá se o lead enviar nova mensagem.</p>
+        </div>
+      ),
+      placeholder: "Ex: Quando desiste do tratamento, quando escolhe outra clínica, quando pede para parar de enviar mensagens...",
+      helpText: "Descreva as situações que caracterizam lead perdido",
+      dataKey: "when_lost_lead",
+      trackingEvent: "when_lost_lead",
+    },
+    {
       id: "metricas",
       type: "textarea",
       botMessage: (
@@ -749,20 +785,6 @@ export const chatConfig: ChatbotConfig = {
     // ============================================
     // ANTES DO AGENDAMENTO: INFOS EXTRAS E AVALIAÇÃO
     // ============================================
-    {
-      id: "when_lost_lead",
-      type: "textarea",
-      botMessage: (
-        <div className="space-y-2">
-          <p>Em que situações você quer que o lead seja marcado como perdido?</p>
-          <p className="text-sm text-[#04152b]/70">Nesses casos a IA coloca o lead no estágio de perdido e nenhum follow-up será enviado; a IA só responderá se o lead enviar nova mensagem.</p>
-        </div>
-      ),
-      placeholder: "Ex: Quando desiste do tratamento, quando escolhe outra clínica, quando pede para parar de enviar mensagens...",
-      helpText: "Descreva as situações que caracterizam lead perdido",
-      dataKey: "when_lost_lead",
-      trackingEvent: "when_lost_lead",
-    },
     {
       id: "extra_infos",
       type: "textarea",

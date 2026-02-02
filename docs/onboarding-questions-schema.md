@@ -25,7 +25,7 @@ This document lists all question constants (data keys) from the onboarding chatb
 | `clinic_website` | text | **text** | Clinic website (or "não tenho") |
 | `instagram_links` | instagram | **jsonb** | Array of Instagram profiles `[{ username, type }]` |
 | `operating_hours` | operating_hours | **jsonb** | Opening hours per day (structured object) |
-| `parking` | choices | **text** | Parking option (Sim gratuito, Sim pago, etc.) |
+| `parking` | choices + text (cond.) | **text** | Parking option (Sim gratuito, Sim pago, etc.). If "Sim, pago" or "Sim, conveniado", a follow-up asks the value; stored as JSON `{ "option": "...", "value": "..." }` in the same variable. |
 | `is_clinic_pix_shared` | choices | **text** | Share clinic PIX key with patients (Sim/Não) |
 | `clinic_pix_key` | text | **text** | Clinic PIX key (conditional) |
 | `accepted_payment_methods` | multi_select | **jsonb** | Payment methods accepted (PIX, crédito, débito, etc.) |
@@ -40,12 +40,12 @@ This document lists all question constants (data keys) from the onboarding chatb
 | `is_voice_reply_activated` | choices | **boolean** | Reply with voice (Sim/Não) |
 | `conversation_flow` | conversation_flow | **text** | Conversation flow choice |
 | `conversation_style` | conversation_style | **text** | Communication style |
-| `is_ai_allowed_to_send_product_prices` | choices | **text** | AI may send prices (só consulta, só tratamento, nunca) |
+| `is_ai_allowed_to_send_product_prices` | choices | **text** | AI may send prices (só consulta, só tratamento, consulta e tratamento, nunca) |
 | `is_ai_allowed_to_send_product_pictures` | choices | **boolean** | AI may send procedure photos (Sim/Não) |
 | `crm_provider` | choices | **text** | Calendar/CRM system name |
 | `crm_provider_other` | text | **text** | Custom CRM name when "Outro sistema" (conditional) |
 | `familiar_to_crm` | choices | **text** | CRM familiarity (Sim, Não, Treinamento) |
-| `is_ai_allow_to_book_appointments` | choices | **text** | AI can book automatically or review only |
+| `is_ai_allow_to_book_appointments` | choices | **text** | AI booking scope: apenas consultas, apenas tratamentos, consultas e tratamentos, ou enviar para revisão humana |
 | `if_booking_fails_send_needs_review` | choices | **boolean** | Mark conversation for human review when booking fails (Sim/Não) |
 | `capture_info` | capture_info | **jsonb** | Questions to ask before booking `[{ question, acceptedValues }]` |
 | `is_booking_reminders_activated` | choices | **boolean** | Booking reminders (Sim/Não) |
