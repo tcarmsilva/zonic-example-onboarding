@@ -1,224 +1,163 @@
-# Onboarding Chat – Question Constants & Database Schema
+# Onboarding Chat – Questions & Database Schema
 
-This document lists all question constants (data keys) from the onboarding chatbot (`app/chat-1/data.tsx`) and the recommended column type for each when storing in a database.
+This document lists all onboarding steps from `app/chat-1/data.tsx` and how each answer is stored by the edge function `supabase/functions/onboarding_records_chatbot/index.ts` in the `chatbot_onboarding` table.
 
----
-
-## Question Constants & Column Types
-
-| Constant (dataKey) | Step Type | Column Type | Description |
-|--------------------|-----------|-------------|-------------|
-| `project_responsible_role` | single_role_choice | **text** | Who is responsible for the implementation project (Dono, Gerente, Atendente, Agência) |
-| `project_responsible_name` | text | **text** | Full name of project responsible |
-| `project_responsible_phone` | phone | **text** | Phone of project responsible |
-| `project_responsible_email` | email | **text** | Email of project responsible |
-| `platform_users` | team_members | **jsonb** | Array of users who will use the platform (excludes implementation responsible; Dono mandatory if responsible is not Dono) `[{ name, role, phone?, email? }]` |
-| `clinic_name` | text | **text** | Clinic name |
-| `clinic_cnpj` | cnpj | **text** | Clinic CNPJ (formatted) |
-| `clinic_type` | choices | **text** | Clinic type (Estética, Médica, Odonto, Outro) |
-| `clinic_type_other` | text | **text** | Custom clinic type when "Outro" (conditional) |
-| `clinic_whatsapp_phone` | phone | **text** | Clinic WhatsApp number |
-| `clinic_timezone` | choices | **text** | Timezone (e.g. Brasília GMT-3) |
-| `clinic_address` | text | **text** | Full clinic address |
-| `clinic_google_maps_link` | text | **text** | Google Maps URL |
-| `clinic_website` | text | **text** | Clinic website (or "não tenho") |
-| `instagram_links` | instagram | **jsonb** | Array of Instagram profiles `[{ username, type }]` |
-| `operating_hours` | operating_hours | **jsonb** | Opening hours per day (structured object) |
-| `parking` | choices + text (cond.) | **text** | Parking option (Sim gratuito, Sim pago, etc.). If "Sim, pago" or "Sim, conveniado", a follow-up asks the value; stored as JSON `{ "option": "...", "value": "..." }` in the same variable. |
-| `is_clinic_pix_shared` | choices | **text** | Share clinic PIX key with patients (Sim/Não) |
-| `clinic_pix_key` | text | **text** | Clinic PIX key (conditional) |
-| `accepted_payment_methods` | multi_select | **jsonb** | Payment methods accepted (PIX, crédito, débito, etc.) |
-| `is_health_insurance_accepted` | choices | **boolean** | Accept health insurance (Sim/Não) |
-| `health_insurances_accepted` | textarea | **text** | List of accepted health plans (conditional) |
-| `health_insurance_specifics` | textarea | **text** | Plans accepted only for certain procedures (conditional) |
-| `assistant_name` | text | **text** | AI assistant name |
-| `ai_assistant_role` | choices | **text** | How assistant presents itself (Assistente virtual, Atendente, Doutor(a)) |
-| `greeting` | textarea | **text** | Initial greeting message |
-| `bot_reply_to` | choices | **text** | All leads vs only paid traffic |
-| `is_group_bot_activated` | choices | **boolean** | Reply in WhatsApp groups (Sim/Não) |
-| `is_voice_reply_activated` | choices | **boolean** | Reply with voice (Sim/Não) |
-| `conversation_flow` | conversation_flow | **text** | Conversation flow choice |
-| `conversation_style` | conversation_style | **text** | Communication style |
-| `is_ai_allowed_to_send_product_prices` | choices | **text** | AI may send prices (só consulta, só tratamento, consulta e tratamento, nunca) |
-| `is_ai_allowed_to_send_product_pictures` | choices | **boolean** | AI may send procedure photos (Sim/Não) |
-| `crm_provider` | choices | **text** | Calendar/CRM system name |
-| `crm_provider_other` | text | **text** | Custom CRM name when "Outro sistema" (conditional) |
-| `familiar_to_crm` | choices | **text** | CRM familiarity (Sim, Não, Treinamento) |
-| `is_ai_allow_to_book_appointments` | choices | **text** | AI booking scope: apenas consultas, apenas tratamentos, consultas e tratamentos, ou enviar para revisão humana |
-| `if_booking_fails_send_needs_review` | choices | **boolean** | Mark conversation for human review when booking fails (Sim/Não) |
-| `capture_info` | capture_info | **jsonb** | Questions to ask before booking `[{ question, acceptedValues }]` |
-| `is_booking_reminders_activated` | choices | **boolean** | Booking reminders (Sim/Não) |
-| `booking_reminder_today` | textarea | **text** | Message for same-day reminder (conditional) |
-| `booking_reminder_tomorrow` | textarea | **text** | Message for day-before reminder (conditional) |
-| `deactivate_on_human_reply` | choices | **text** | Deactivate AI when human replies |
-| `ai_reactivation_interval` | choices | **text** | When to reactivate AI (conditional) |
-| `deactivation_schedule` | deactivation_schedule | **jsonb** | Times when AI is off (structured) |
-| `is_smart_followups_activated` | choices | **boolean** | Smart follow-ups (Sim/Não) |
-| `reactivation_lead_status_ids` | multi_select | **jsonb** | Lead statuses that reactivate AI (array of strings) |
-| `lead_status_ai_activated` | multi_select | **jsonb** | Lead statuses where AI stops (array of strings) |
-| `how_many_doctors` | number | **integer** | Number of doctors/professionals |
-| `how_many_products` | number | **integer** | Number of services/procedures |
-| `main_pain_points` | multi_text | **jsonb** | List of main pain points (array of strings) |
-| `hot_lead` | hot_lead | **text** or **jsonb** | Lead qualification: 3 fields (muito_quente, quente, morno). Stored as JSON string. |
-| `needs_review` | textarea | **text** | When to send to human review |
-| `when_lost_lead` | textarea | **text** | Situations to mark lead as lost |
-| `notification` | multi_select | **jsonb** | Notification triggers (array of strings) |
-| `clinic_notification_phone` | phone | **text** | Phone for notifications (asked after notification types) |
-| `tasks` | textarea | **text** | When to create tasks |
-| `import_contacts` | choices | **boolean** | Import contacts (Sim/Não) |
-| `import_ai_off_contacts` | choices | **boolean** | Import AI-off contacts (Sim/Não) |
-| `ads` | multi_select | **jsonb** | Ad platforms to integrate (array of strings) |
-| `metricas` | textarea | **text** | Desired metrics/indicators |
-| `extra_infos` | textarea | **text** | Extra info for AI config (before booking) |
-| `onboarding_rating` | rating | **integer** | User rating 1–5 for onboarding process |
-| `onboarding_rating_feedback` | textarea | **text** | How to improve (conditional, when rating ≠ 5) |
+**Summary:** Some answers go to **dedicated columns** (one column per field). Others go into **JSON columns** (multiple fields stored inside a single `json`/`jsonb` column).
 
 ---
 
-## Column Type Reference
+## 1. Dedicated columns
 
-| Step type in code | Recommended DB type | Notes |
-|-------------------|---------------------|--------|
-| `text` | **text** | Single line string |
-| `textarea` | **text** | Multi-line string |
-| `phone` | **text** | E.164 or formatted string |
-| `email` | **text** | Email string |
-| `choices` | **text** or **boolean** | Single option value; use **boolean** when options are Sim/Não |
-| `number` | **integer** | Integer (use `numeric` if decimals needed) |
-| `multi_select` | **jsonb** | Array of selected option strings |
-| `multi_text` | **jsonb** | Array of strings |
-| `team_members` | **jsonb** | Array of objects |
-| `instagram` | **jsonb** | Array of `{ username, type }` |
-| `operating_hours` | **jsonb** | Structured opening hours |
-| `deactivation_schedule` | **jsonb** | Structured schedule |
-| `capture_info` | **jsonb** | Array of `{ question, acceptedValues }` |
-| `conversation_flow` | **text** | Single selected value |
-| `conversation_style` | **text** | Single selected value |
-| `cnpj` | **text** | CNPJ string (formatted or digits) |
-| `rating` | **integer** | 1–5 star rating value |
+These **dataKeys** are stored in their **own column** on `chatbot_onboarding`. The column name may differ from the dataKey (e.g. `clinic_name` → `name`, `conversation_flow` → `template_type`).
+
+| dataKey (chat) | Column name | Column type | Notes |
+|----------------|-------------|-------------|--------|
+| `clinic_name` | **name** | text | |
+| `clinic_whatsapp_phone` | **phone** | bigint | Converted from string |
+| `clinic_timezone` | **timezone** | text | |
+| `clinic_address` | **address** | text | |
+| `clinic_google_maps_link` | **google_maps_link** | text | |
+| `instagram_links` | **instagram_links** | text[] | Array of strings |
+| `operating_hours` | **operating_hours** | text | JSON string; see Special formats |
+| `operating_hours` | **opening_hours** | json | Same object (not stringified) |
+| `operating_hours` | **availability_blocks** | json | Array `[{ rrule, start_time, end_time }]` |
+| `parking` | **parking** | text | Or JSON `{ option, value }` when parking_value |
+| `assistant_name` | **assistant_name** | text | |
+| `bot_reply_to` | **bot_reply_to** | text | |
+| `is_group_bot_activated` | **is_group_bot_activated** | boolean | Sim/Não → true/false |
+| `is_voice_reply_activated` | **is_voice_reply_activated** | boolean | Sim/Não → true/false |
+| `conversation_flow` | **template_type** | text | id/name extracted from selection |
+| `conversation_style` | **communication_style** | text | |
+| `crm_provider` | **crm_provider** | text | |
+| `is_ai_allow_to_book_appointments` | **is_ai_allow_to_book_appointments** | boolean | Specificity also in calendar_logic_json |
+| `is_booking_reminders_activated` | **is_booking_reminders_activated** | boolean | Sim/Não → true/false |
+| `booking_reminder_today` | **booking_reminder_today** | text | |
+| `booking_reminder_tomorrow` | **booking_reminder_tomorrow** | text | |
+| `deactivate_on_human_reply` | **deactivate_on_human_reply** | boolean | Sim/Não → true/false |
+| `ai_reactivation_interval` | **ai_reactivation_interval** | integer | e.g. "4 horas" → 4 |
+| `deactivation_schedule` | **deactivation_schedule** | json | Object by day `{ day: { start_h, end_h } }`; null when "sempre ligada" |
+| `deactivation_schedule` | **availability_blocks** | json | Array `[{ rrule, start_time, end_time }]` when scheduled |
+| `is_smart_followups_activated` | **is_smart_followups_activated** | boolean | Sim/Não → true/false |
+| `reactivation_lead_status_ids` | **reactivation_lead_status_ids** | int4[] | Names → IDs (1–8, 999); frontend sends comma-separated |
+| `clinic_notification_phone` | **clinic_notification_phone** | bigint | Converted from string |
+
+**Computed / always set:**
+
+- **is_clinic_info_added** – always set to `true` when saving.
+- **is_ai_allow_to_book_appointments** – also writes `booking_permission_specificity` and `is_ai_allow_to_book_appointments_raw` into **calendar_logic_json**.
 
 ---
 
-## Database Schema Suggestion
+## 2. JSON columns (variables stored inside JSON)
 
-Use this SQL as a reference to create your onboarding responses table (e.g. in Supabase). Adjust table name, primary key, and constraints as needed.
+These **dataKeys** do **not** have their own column. They are stored as **keys inside** one of the JSON columns below.
 
-```sql
--- Table: onboarding_responses
--- Stores one row per completed onboarding (e.g. per clinic/session).
--- Replace table name and add your primary key (id, clinic_id, etc.) as needed.
+### 2.1 `custom_instructions_inputs` (json)
 
-CREATE TABLE onboarding_responses (
-  -- Primary key / identifiers (customize as needed)
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now(),
+| dataKey | Step type | Stored as |
+|---------|-----------|-----------|
+| `greeting` | textarea | text |
+| `ai_assistant_role` | choices | value |
+| `conversation_flow` | conversation_flow | (copy; main value goes to column **template_type**) |
+| `needs_review` | textarea | text |
+| `tasks` | textarea | text |
+| `is_clinic_pix_shared` | choices | value |
+| `accepted_payment_methods` | multi_select | array |
+| `is_health_insurance_accepted` | choices | value |
+| `health_insurances_accepted` | textarea | text |
+| `health_insurance_specifics` | textarea | text |
+| `if_booking_fails_send_needs_review` | choices | value |
+| `capture_info` | capture_info | json |
+| `is_ai_allowed_to_send_product_prices` | choices | value |
+| `is_ai_allowed_to_send_product_pictures` | choices | value |
+| `hot_lead` | hot_lead | json |
+| `notification` | multi_select | value/array |
+| `when_lost_lead` | textarea | text |
+| `clinic_pix_key` | text | text |
 
-  -- Section 0: Project responsible & platform users
-  project_responsible_role text,
-  project_responsible_name text,
-  project_responsible_phone text,
-  project_responsible_email text,
-  platform_users jsonb,
+### 2.2 `client_data` (json)
 
-  -- Section 1: Clinic info
-  clinic_name text,
-  clinic_cnpj text,
-  clinic_type text,
-  clinic_type_other text,
-  clinic_whatsapp_phone text,
-  clinic_timezone text,
-  clinic_address text,
-  clinic_google_maps_link text,
-  clinic_website text,
-  instagram_links jsonb,
-  operating_hours jsonb,
-  parking text,
-  is_clinic_pix_shared text,
-  clinic_pix_key text,
-  accepted_payment_methods jsonb,
-  is_health_insurance_accepted boolean,
-  health_insurances_accepted text,
-  health_insurance_specifics text,
+| dataKey | Step type | Stored as |
+|---------|-----------|-----------|
+| `project_responsible_role` | single_role_choice | text |
+| `project_responsible_name` | (project_responsible_details) | text |
+| `project_responsible_phone` | (project_responsible_details) | text |
+| `project_responsible_email` | (project_responsible_details) | text |
+| `platform_users` | team_members | text or "Mais ninguém" |
+| `clinic_cnpj` | cnpj | text |
+| `clinic_type` | choices | text |
+| `clinic_type_other` | text | text (conditional) |
+| `clinic_website` | text | text |
+| `lead_status_ai_activated` | multi_select | comma-separated or array |
 
-  -- Section 2: AI config
-  assistant_name text,
-  ai_assistant_role text,
-  greeting text,
-  bot_reply_to text,
-  is_group_bot_activated boolean,
-  is_voice_reply_activated boolean,
-  conversation_flow text,
-  conversation_style text,
-  is_ai_allowed_to_send_product_prices text,
-  is_ai_allowed_to_send_product_pictures boolean,
+### 2.3 `calendar_logic_json` (json)
 
-  -- Section 3: Calendar & bookings
-  crm_provider text,
-  crm_provider_other text,
-  familiar_to_crm text,
-  is_ai_allow_to_book_appointments text,
-  if_booking_fails_send_needs_review boolean,
-  capture_info jsonb,
-  is_booking_reminders_activated boolean,
-  booking_reminder_today text,
-  booking_reminder_tomorrow text,
+| dataKey / source | Stored as |
+|------------------|-----------|
+| `crm_provider_other` | text (when "Outro sistema") |
+| From `is_ai_allow_to_book_appointments` | **booking_permission_specificity** (e.g. "apenas_tratamentos") |
+| From `is_ai_allow_to_book_appointments` | **is_ai_allow_to_book_appointments_raw** (e.g. "Apenas tratamentos") |
 
-  -- Section 4: AI behavior
-  deactivate_on_human_reply text,
-  ai_reactivation_interval text,
-  deactivation_schedule jsonb,
-  is_smart_followups_activated boolean,
-  reactivation_lead_status_ids jsonb,
-  lead_status_ai_activated jsonb,
+### 2.4 `products` (json)
 
-  -- Section 5: Business info
-  how_many_doctors integer,
-  how_many_products integer,
-  main_pain_points jsonb,
+| dataKey | Step type | Stored as |
+|---------|-----------|-----------|
+| `how_many_doctors` | number | number |
+| `how_many_products` | number | number |
 
-  -- Section 6: Lead qualification
-  hot_lead text,
-  needs_review text,
-  when_lost_lead text,
+### 2.5 `pain_points` (json)
 
-  -- Section 7: Notifications & tasks
-  notification jsonb,
-  clinic_notification_phone text,
-  tasks text,
+| dataKey | Step type | Stored as |
+|---------|-----------|-----------|
+| `main_pain_points` | multi_text | array |
 
-  -- Section 8: Integrations
-  import_contacts boolean,
-  import_ai_off_contacts boolean,
-  ads jsonb,
-  metricas text,
+### 2.6 `onboarding_data` (json)
 
-  -- Before booking: extra info & rating
-  extra_infos text,
-  onboarding_rating integer,
-  onboarding_rating_feedback text
-);
+| dataKey | Step type | Stored as |
+|---------|-----------|-----------|
+| `ads` | multi_select | value/array |
+| `familiar_to_crm` | choices | value |
+| `import_contacts` | choices | value |
+| `import_ai_off_contacts` | choices | value |
+| `extra_infos` | textarea | text |
+| `metricas` | textarea | text |
+| `onboarding_rating` | rating | value |
+| `onboarding_rating_feedback` | textarea | text |
 
--- Optional: trigger to keep updated_at in sync
-CREATE OR REPLACE FUNCTION set_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW.updated_at = now();
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+---
 
-CREATE TRIGGER onboarding_responses_updated_at
-  BEFORE UPDATE ON onboarding_responses
-  FOR EACH ROW
-  EXECUTE PROCEDURE set_updated_at();
-```
+## Quick reference: dataKey → storage
 
-**Notes:**
+| Storage | dataKeys |
+|---------|----------|
+| **Dedicated columns** | clinic_name→name, clinic_whatsapp_phone→phone, clinic_timezone→timezone, clinic_address→address, clinic_google_maps_link→google_maps_link, instagram_links, operating_hours→operating_hours+opening_hours+availability_blocks, parking, assistant_name, bot_reply_to, is_group_bot_activated, is_voice_reply_activated, conversation_flow→template_type, conversation_style→communication_style, crm_provider, is_ai_allow_to_book_appointments, is_booking_reminders_activated, booking_reminder_today, booking_reminder_tomorrow, deactivate_on_human_reply, ai_reactivation_interval, deactivation_schedule→deactivation_schedule+availability_blocks, is_smart_followups_activated, reactivation_lead_status_ids, clinic_notification_phone |
+| **custom_instructions_inputs** | greeting, ai_assistant_role, conversation_flow (copy), needs_review, tasks, is_clinic_pix_shared, accepted_payment_methods, is_health_insurance_accepted, health_insurances_accepted, health_insurance_specifics, if_booking_fails_send_needs_review, capture_info, is_ai_allowed_to_send_product_prices, is_ai_allowed_to_send_product_pictures, hot_lead, notification, when_lost_lead, clinic_pix_key |
+| **client_data** | project_responsible_role, project_responsible_name, project_responsible_phone, project_responsible_email, platform_users, clinic_cnpj, clinic_type, clinic_type_other, clinic_website, lead_status_ai_activated |
+| **calendar_logic_json** | crm_provider_other, booking_permission_specificity, is_ai_allow_to_book_appointments_raw |
+| **products** | how_many_doctors, how_many_products |
+| **pain_points** | main_pain_points |
+| **onboarding_data** | ads, familiar_to_crm, import_contacts, import_ai_off_contacts, extra_infos, metricas, onboarding_rating, onboarding_rating_feedback |
 
-- **text**: Use for single values (choices, names, phones, long text).
-- **boolean**: Use for Sim/Não fields; store `true` for "Sim" and `false` for "Não" when persisting from the chat.
-- **integer**: Use for `how_many_doctors` and `how_many_products`.
-- **jsonb**: Use for arrays or structured data (`platform_users`, `instagram_links`, `operating_hours`, `capture_info`, `deactivation_schedule`, `multi_select` / `multi_text` results).
-- Add your own columns for: user/session id, clinic id, UTM params, or any other metadata you need.
-- Conditional fields (e.g. `clinic_type_other`, `booking_reminder_today`) can stay nullable; they are only filled when the condition is met in the flow.
+---
+
+## Special formats
+
+### `operating_hours` (horários de funcionamento da clínica)
+
+- **operating_hours** (text): JSON string of day-based object, e.g. `{"monday":{"enabled":true,"start":"09:00","end":"18:00"},...}`.
+- **opening_hours** (json): same object (not stringified).
+- **availability_blocks** (json): array `[{ "rrule": "FREQ=WEEKLY;BYDAY=MO,TU,...", "start_time": "09:00", "end_time": "17:00" }, ...]`. Consecutive days with same hours are grouped.
+
+### `deactivation_schedule` (IA desligada em horários específicos)
+
+- **deactivation_schedule** (json): `{ "sunday": { "start_h": 9, "end_h": 18 }, ... }`. Null when "sempre ligada".
+- **availability_blocks** (json): same array format as above, converted from the day-based object.
+
+### `reactivation_lead_status_ids`
+
+- Column: **int4[]**.
+- Frontend sends comma-separated names; backend maps to IDs (1–8, 999 for Lost).
+
+### `instagram_links`
+
+- Column: **text[]**. Stored as array of strings (e.g. "@user (clínica)").
