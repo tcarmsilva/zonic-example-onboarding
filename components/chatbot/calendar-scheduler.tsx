@@ -12,12 +12,12 @@ interface CalendarSchedulerProps {
     clinicName: string
     companyType?: string
   }
-  leadId?: number | null
+  onboardingId?: number | null
   calendarIds?: CalendarId[] // Lista de calendários para agregar slots
   onBookingComplete?: (bookingInfo: { date: string; time: string; shortFormat: string }, isClinic: boolean) => void
 }
 
-export function CalendarScheduler({ userData, leadId, calendarIds = ["1"], onBookingComplete }: CalendarSchedulerProps) {
+export function CalendarScheduler({ userData, onboardingId, calendarIds = ["1"], onBookingComplete }: CalendarSchedulerProps) {
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
 
   // Usar o primeiro calendário como padrão para booking
@@ -34,7 +34,7 @@ export function CalendarScheduler({ userData, leadId, calendarIds = ["1"], onBoo
           }
         }}
         onBack={() => setSelectedSlot(null)}
-        leadId={leadId}
+        onboardingId={onboardingId}
         calendarId={primaryCalendarId}
         calendarIds={calendarIds}
       />

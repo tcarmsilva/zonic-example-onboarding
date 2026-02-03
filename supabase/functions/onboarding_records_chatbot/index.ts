@@ -420,6 +420,7 @@ const PAIN_POINTS_FIELDS = new Set([
 ]);
 
 // onboarding_data: General onboarding data (notification e when_lost_lead vão em custom_instructions_inputs)
+// schedule_event: objeto do agendamento Cal.com (frontend envia via updateOnboardingRecord após usuário agendar)
 const ONBOARDING_DATA_FIELDS = new Set([
   "ads",
   // CRM familiarity and imports
@@ -430,6 +431,7 @@ const ONBOARDING_DATA_FIELDS = new Set([
   "metricas",
   "onboarding_rating",
   "onboarding_rating_feedback",
+  "schedule_event", // agendamento: objeto com uid, start, etc. da API Cal.com
 ]);
 
 // Instagram links (special handling for text[])

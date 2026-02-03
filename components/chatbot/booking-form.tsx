@@ -6,7 +6,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ArrowUp, Loader2, Calendar, Clock } from "lucide-react"
 import { createBooking, cancelBooking, prefetchSlots } from "@/lib/cal-api"
-import { sendLeadToSupabase } from "@/lib/supabase-leads"
+import { updateOnboardingRecord } from "@/lib/supabase-onboarding"
 import type { CalendarId } from "@/lib/cal-config"
 
 interface BookingFormProps {
@@ -20,12 +20,12 @@ interface BookingFormProps {
   }
   onSuccess: (bookingInfo?: { date: string; time: string; shortFormat: string }, isClinic?: boolean) => void
   onBack: () => void
-  leadId?: number | null
+  onboardingId?: number | null
   calendarId?: CalendarId
   calendarIds?: CalendarId[] // Se fornecido, tentará criar booking nos calendários até um funcionar
 }
 
-export function BookingForm({ selectedSlot, userData, onSuccess, onBack, leadId, calendarId = "1", calendarIds }: BookingFormProps) {
+export function BookingForm({ selectedSlot, userData, onSuccess, onBack, onboardingId, calendarId = "1", calendarIds }: BookingFormProps) {
   const [step, setStep] = useState<"confirm" | "email-choice" | "email-input">("confirm")
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
@@ -128,14 +128,9 @@ export function BookingForm({ selectedSlot, userData, onSuccess, onBack, leadId,
       // Armazenar o calendarId usado para uso posterior
       ;(userData as any).usedCalendarId = usedCalendarId
 
-      if (leadId) {
-        console.log("[v0] Updating lead with schedule_event")
-        await sendLeadToSupabase(
-          {
-            schedule_event: result.data,
-          },
-          leadId,
-        )
+      if (onboardingId) {
+        console.log("[v0] Saving schedule_event to chatbot_onboarding.onboarding_data")
+        await updateOnboardingRecord(onboardingId, { schedule_event: result.data })
       }
 
       setStep("email-choice")
@@ -197,15 +192,11 @@ export function BookingForm({ selectedSlot, userData, onSuccess, onBack, leadId,
 
       console.log("[v0] Booking recreated successfully with email!")
 
-      if (leadId) {
-        console.log("[v0] Updating lead with email and new schedule_event")
-        await sendLeadToSupabase(
-          {
-            email: email,
-            schedule_event: newBooking.data,
-          },
-          leadId,
-        )
+      if (onboardingId) {
+        console.log("[v0] Updating onboarding_data with email and schedule_event")
+        await updateOnboardingRecord(onboardingId, {
+          schedule_event: newBooking.data,
+        })
       }
 
       // Verificar se é clínica (não é Agência nem Franqueadora)

@@ -966,6 +966,7 @@ export function ChatContainer({ config }: ChatContainerProps) {
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-300 py-4">
               <CalendarScheduler 
                 userData={getCalendarUserData()} 
+                onboardingId={onboardingId}
                 calendarIds={[(config.calendar.calendarId || "1") as CalendarId]}
                 onBookingComplete={(info) => handleBookingComplete(info)}
               />

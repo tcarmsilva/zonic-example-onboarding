@@ -123,6 +123,7 @@ These **dataKeys** do **not** have their own column. They are stored as **keys i
 | `metricas` | textarea | text |
 | `onboarding_rating` | rating | value |
 | `onboarding_rating_feedback` | textarea | text |
+| **schedule_event** | (agendamento Cal.com) | object | Dados completos do agendamento (resposta da API Cal.com), gravado quando o usuário agenda no fluxo de onboarding. |
 
 ---
 
@@ -136,7 +137,7 @@ These **dataKeys** do **not** have their own column. They are stored as **keys i
 | **calendar_logic_json** | crm_provider_other, booking_permission_specificity, is_ai_allow_to_book_appointments_raw |
 | **products** | how_many_doctors, how_many_products |
 | **pain_points** | main_pain_points |
-| **onboarding_data** | ads, familiar_to_crm, import_contacts, import_ai_off_contacts, extra_infos, metricas, onboarding_rating, onboarding_rating_feedback |
+| **onboarding_data** | ads, familiar_to_crm, import_contacts, import_ai_off_contacts, extra_infos, metricas, onboarding_rating, onboarding_rating_feedback, **schedule_event** (objeto do agendamento) |
 
 ---
 
@@ -161,3 +162,7 @@ These **dataKeys** do **not** have their own column. They are stored as **keys i
 ### `instagram_links`
 
 - Column: **text[]**. Stored as array of strings (e.g. "@user (clínica)").
+
+### Agendamento (`schedule_event` em `onboarding_data`)
+
+- Quando o usuário agenda no calendário do onboarding, as informações completas do agendamento (resposta da API Cal.com) são salvas na coluna **onboarding_data** da tabela **chatbot_onboarding**, na chave **schedule_event** (objeto com uid, start, etc.).

@@ -70,11 +70,12 @@ export async function createOnboardingRecord(
 
 /**
  * Update an existing onboarding record with new data
- * Called after each chat step to save the user's response
+ * Called after each chat step to save the user's response.
+ * data values can be strings or objects (e.g. schedule_event for booking info).
  */
 export async function updateOnboardingRecord(
   onboardingId: number,
-  data: Record<string, string>
+  data: Record<string, string | unknown>
 ): Promise<{ success: boolean; error?: string }> {
   if (!EDGE_FUNCTION_URL) {
     console.warn('[OnboardingAPI] Edge function URL not configured');
