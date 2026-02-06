@@ -1,0 +1,15 @@
+# Netlify config for Next.js deploy
+# https://docs.netlify.com/configure-builds/file-based-configuration/
+
+[build]
+  command = "pnpm run build"
+  publish = ".next"
+
+# NEXT_PUBLIC_* vars are inlined into client bundle by Next.js by design.
+# Tell Netlify not to treat them as secrets in build output.
+# https://docs.netlify.com/build/environment-variables/secrets-controller/#configure-secret-scanning
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_GTM_ID,NEXT_PUBLIC_META_PIXEL_ID,NEXT_PUBLIC_SUPABASE_ANON_KEY,NEXT_PUBLIC_SUPABASE_URL"
+
+# Omit .env.example from secret scan (contains placeholders only)
+  SECRETS_SCAN_OMIT_PATHS = ".env.example"

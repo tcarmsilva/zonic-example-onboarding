@@ -293,6 +293,24 @@ function parseDeactivationSchedule(value: string | unknown): Record<string, { st
 }
 
 // ============================================
+// TIMEZONE: label (frontend) -> IANA (companies pattern)
+// ============================================
+// Frontend sends labels like "Brasília (GMT-3)". Companies table uses IANA (e.g. America/Sao_Paulo).
+const TIMEZONE_LABEL_TO_IANA: Record<string, string> = {
+  "Brasília (GMT-3)": "America/Sao_Paulo",
+  "Manaus (GMT-4)": "America/Manaus",
+  "Cuiabá (GMT-4)": "America/Cuiaba",
+  "Rio Branco (GMT-5)": "America/Rio_Branco",
+  "Fernando de Noronha (GMT-2)": "America/Noronha",
+};
+
+function timezoneLabelToIana(value: string | null | undefined): string | null {
+  if (!value || typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return TIMEZONE_LABEL_TO_IANA[trimmed] ?? trimmed;
+}
+
+// ============================================
 // FIELD MAPPING: Data Keys to Database Columns
 // ============================================
 
@@ -554,8 +572,12 @@ function buildPayload(data: Record<string, unknown>, existingRecord?: Record<str
       const columnName = DIRECT_COLUMN_MAP[key];
       let processedValue: unknown = value;
       
+      // Timezone: store IANA format (companies pattern), front sends label e.g. "Brasília (GMT-3)"
+      if (key === "clinic_timezone" && columnName === "timezone") {
+        processedValue = timezoneLabelToIana(String(value));
+      }
       // Convert booleans (coluna própria; não salvar _raw em custom_instructions)
-      if (BOOLEAN_FIELDS.has(key)) {
+      else if (BOOLEAN_FIELDS.has(key)) {
         processedValue = stringToBoolean(String(value));
       }
       // Convert ai_reactivation_interval to integer (coluna ai_reactivation_interval)

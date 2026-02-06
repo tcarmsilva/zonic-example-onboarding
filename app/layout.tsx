@@ -1,15 +1,11 @@
 import type React from "react"
-import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
+import type { Metadata, Viewport } from "next"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 
 import { MetaPixel } from "@/components/tracking/meta-pixel"
 import { GoogleTagManager, GoogleTagManagerNoscript } from "@/components/tracking/google-tag-manager"
 import { UTMTracker } from "@/components/tracking/utm-tracker"
-
-const _geist = Geist({ subsets: ["latin"] })
-const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || "YOUR_PIXEL_ID"
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || "GTM-XXXXXXX"
@@ -26,12 +22,13 @@ export const metadata: Metadata = {
     icon: "/favicon.png",
     apple: "/favicon.png",
   },
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
+}
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 }
 
 export default function RootLayout({
